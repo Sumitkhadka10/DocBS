@@ -1,11 +1,11 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; // Added useNavigate import
+import { useParams, useNavigate } from 'react-router-dom'; 
 import { AppContext } from '../context/AppContext';
 
 const Doctors = () => {
   const { speciality } = useParams();
-  const navigate = useNavigate(); // Added navigate definition
-  const [filterDoc, setFilterDoc] = useState([]); // Correctly initialized useState
+  const navigate = useNavigate(); 
+  const [filterDoc, setFilterDoc] = useState([]); 
 
   const { doctors } = useContext(AppContext);
 
@@ -23,17 +23,17 @@ const Doctors = () => {
 
   return (
     <div>
-      <p>Browse through the doctors specialist.</p>
-      <div>
-        <div>
-          <p>General physician</p>
-          <p>Gynecologist</p>
-          <p>Dermatologist</p>
-          <p>Pediatricians</p>
-          <p>Neurologist</p>
-          <p>Gastroenterologist</p>
+      <p className='text-gray-600'>Browse through the doctors specialist.</p>
+      <div className='flex flex-col sm:flex-row items-start gap-5 mt-5'>
+        <div className='flex flex-col gap-4 text-sm text-gray-600'>
+          <p className='w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer'>General physician</p>
+          <p className='w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer'>Gynecologist</p>
+          <p className='w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer'>Dermatologist</p>
+          <p className='w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer'>Pediatricians</p>
+          <p className='w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer'>Neurologist</p>
+          <p className='w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer'>Gastroenterologist</p>
         </div>
-        <div>
+        <div className='w-full grid grid-cols-auto gap-4 gap-y-6'>
           {filterDoc.map((item, index) => (
             <div
               onClick={() => navigate(`/appointment/${item._id}`)}
