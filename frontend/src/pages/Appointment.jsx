@@ -8,7 +8,11 @@ const Appointment = () => {
   const {docId} = useParams()
   const {doctors, currencySymbol} = useContext(AppContext)
 
-  const [docInfo,ssetDocInfo] = useState(null)
+  const [docInfo,ssetDocInfo] = useState(null) //state variable
+  const [docSlots,setDocSlots] = useState([])
+  const [slotIndex,setSlotIndex] = useState(0)
+  const [slotTime,setSlotTime] = useState('')
+
 
   const fetchDocInfo = async () => {
     const docInfo = doctors.find(doc => doc._id == docId)
