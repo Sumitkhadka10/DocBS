@@ -45,6 +45,9 @@ const Appointment = () => {
                 <p className='flex items-center gap-1 text-sm font-medium text-gray-900 mt-3'>About <img src={assets.info_icon} alt="" /></p>
                 <p className='text-sm text-gray-500 max-w-[700px] mt-1'>{docInfo.about}</p>
               </div>
+              <p>
+                Appointment fee: <span>{docInfo.fees}</span>
+              </p>
 
           </div>
 
