@@ -16,7 +16,7 @@ const TopDoctors = () => {
         {doctors && doctors.length > 0 ? (
           doctors.slice(0, 10).map((item, index) => (
             <div
-              onClick={() => navigate(`/appointment/${item._id}`)}
+              onClick={() => {navigate(`/appointment/${item._id}`); scrollTo(0,0)}}
               className='border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:-translate-y-2 transition-all duration-500'
               key={index}
             >
