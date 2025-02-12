@@ -39,7 +39,7 @@ const Contact = () => {
               rel="noopener noreferrer"
               className="text-blue-400 hover:underline"
             >
-              Twitter
+              X
             </a>
             <a
               href="https://instagram.com"
