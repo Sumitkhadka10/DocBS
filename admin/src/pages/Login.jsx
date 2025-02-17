@@ -28,8 +28,8 @@ const Login = () => {
         // doctor login
       }
     } catch (error) {
-      // Handle error (e.g., show a toast or log the error)
-      toast.error('An error occurred');
+      // Handle error 
+      toast.error('Invalid Credentials!');
     }
   };
 
