@@ -21,12 +21,12 @@ const changeAvailability = async (req,res) => {
 
 //creating function so that doctors can be seen in frontend
 
-const doctorList = async () => {
+const doctorList = async (req,res) => {
     try {
 
         const doctors = await doctorModel.find({}).select(['-password','-email'])
         res.json({success:true,doctors})
-        
+
     } catch (error) {
         
         console.error(error);
