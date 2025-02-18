@@ -72,7 +72,7 @@ const MyProfile = () => {
       {
         isEdit 
         ? <input className='max-w-28 bg-gray-100' type="date" onChange={(e) => setUserData(prev => ({...prev, dob: e.target.value}))} value={userData.dob} />
-        : <p className='text-gray-400'>{userData.dob}</p>
+        : <p  className='text-gray-400'>{userData.dob}</p>
       }
 
         </div>
