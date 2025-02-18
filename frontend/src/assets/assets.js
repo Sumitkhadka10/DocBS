@@ -195,8 +195,8 @@ export const doctors = [
         about: 'Dr. Suman Rai is a dedicated gynecologist with a passion for women\'s health. She specializes in providing comprehensive care, from routine check-ups to complex treatments. With a focus on preventive care and early diagnosis, Dr. Rai ensures her patients receive personalized attention. She is committed to offering the latest and most effective treatment strategies in obstetrics and gynecology, aiming for the well-being of women at every stage of life.',
         fees: 3000,
         address: {
-            line1: 'Kathmandu, Nepal',
-            line2: 'Near Pashupatinath Temple'
+            line1: 'Near Pashupatinath Temple',
+            line2: 'Kathmandu, Nepal'
         }
     },
     {
@@ -209,8 +209,8 @@ export const doctors = [
         about: 'Dr. Priya Sharma is a skilled dermatologist with a focus on skin health. She is dedicated to offering treatments for various skin conditions, using advanced techniques and a patient-centered approach. Dr. Sharma emphasizes the importance of early detection and preventive care in maintaining healthy skin.',
         fees: 2500,
         address: {
-            line1: 'Pokhara, Nepal',
-            line2: 'Near Fewa Lake'
+            line1: 'Near Fewa Lake ',
+            line2: 'Pokhara, Nepal'
         }
     },
     {
@@ -223,8 +223,8 @@ export const doctors = [
         about: 'Dr. Anjan Thapa is a compassionate pediatrician dedicated to providing high-quality medical care to children. She focuses on early diagnosis, preventive care, and effective treatment strategies for a wide range of pediatric conditions. Dr. Thapa ensures that each child receives personalized attention in a comfortable and supportive environment.',
         fees: 3000,
         address: {
-            line1: 'Biratnagar, Nepal',
-            line2: 'Near Mechi Bridge'
+            line1: 'Near Mechi Bridge ',
+            line2: 'Biratnagar, Nepal'
         }
     },
     {
@@ -237,8 +237,8 @@ export const doctors = [
         about: 'Dr. Alisha Koirala is an experienced neurologist dedicated to diagnosing and treating a wide range of neurological disorders. She is committed to offering comprehensive care through early diagnosis and personalized treatment strategies. Dr. Koirala works closely with her patients to ensure effective management of conditions like epilepsy, migraines, and neurodegenerative diseases.',
         fees: 4000,
         address: {
-            line1: 'Lalitpur, Nepal',
-            line2: 'Near Patan Durbar Square'
+            line1: 'Near Patan Durbar Square',
+            line2: 'Lalitpur, Nepal'
         }
     },
     {
@@ -251,8 +251,8 @@ export const doctors = [
         about: 'Dr. Shreejan Poudel is a skilled neurologist who specializes in diagnosing and treating complex neurological disorders. With a focus on early intervention and personalized care, she works to improve the quality of life for her patients by effectively managing conditions such as migraines, epilepsy, and other neurological diseases.',
         fees: 4000,
         address: {
-            line1: 'Chitwan, Nepal',
-            line2: 'Near Sauraha'
+            line1: 'Near Sauraha',
+            line2: 'Chitwan, Nepal'
         }
     },
     {
@@ -265,8 +265,8 @@ export const doctors = [
         about: 'Dr. Nisha Adhikari is a compassionate general physician committed to providing holistic medical care. She specializes in diagnosing and treating a variety of illnesses and conditions, with a strong focus on preventive healthcare. Dr. Adhikari works closely with her patients to offer personalized treatment plans and guidance for maintaining overall health.',
         fees: 3000,
         address: {
-            line1: 'Pokhara, Nepal',
-            line2: 'Near Lakeside'
+            line1: 'Near Lakeside',
+            line2: 'Pokhara, Nepal'
         }
     },
     {
@@ -279,22 +279,22 @@ export const doctors = [
         about: 'Dr. Suraj Gurung is a dedicated gynecologist with a strong focus on women\'s health. She specializes in providing comprehensive care, from routine gynecological check-ups to complex treatments. Dr. Gurung emphasizes preventive care, early diagnosis, and effective treatment strategies to ensure the well-being of women at all stages of life.',
         fees: 3000,
         address: {
-            line1: 'Kathmandu, Nepal',
-            line2: 'Near Boudhanath Stupa'
+            line1: 'Near Boudhanath Stupa',
+            line2: 'Kathmandu, Nepal'
         }
     },
     {
         _id: 'doc15',
-        name: 'Dr. Manisha Rai',
+        name: 'Dr. Namrata Rai',
         image: doc15,
         speciality: 'Dermatologist',
         degree: 'MBBS, MD (Dermatology)',
         experience: '1 Years',
-        about: 'Dr. Manisha Rai is a passionate dermatologist dedicated to providing high-quality skin care. She specializes in treating a variety of skin conditions, from common rashes to complex dermatological issues. Dr. Rai focuses on early diagnosis and preventive care to help her patients maintain healthy and beautiful skin.',
+        about: 'Dr. Namrata Rai is a passionate dermatologist dedicated to providing high-quality skin care. She specializes in treating a variety of skin conditions, from common rashes to complex dermatological issues. Dr. Rai focuses on early diagnosis and preventive care to help her patients maintain healthy and beautiful skin.',
         fees: 2500,
         address: {
-            line1: 'Lalitpur, Nepal',
-            line2: 'Near Patan Durbar Square'
+            line1: 'Near Patan Durbar Square',
+            line2: 'Lalitpur, Nepal'
         }
     },
 ]
