@@ -19,4 +19,21 @@ const changeAvailability = async (req,res) => {
 
 }
 
-export {changeAvailability}
+//creating function so that doctors can be seen in frontend
+
+const doctorList = async () => {
+    try {
+
+        const doctors = await doctorModel.find({}).select(['-password','-email'])
+        res.json({success:true,doctors})
+        
+    } catch (error) {
+        
+        console.error(error);
+        res.json({success:false,message:error.message}) 
+
+        
+    }
+}
+
+export {changeAvailability,doctorList}
