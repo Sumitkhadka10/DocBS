@@ -33,8 +33,10 @@ const AppContextProvider = (props) => {
       const { data } = await axios.get(backendUrl + "/api/user/get-profile", {
         headers: { token },
       });
+      // if (data.success) {
+      //   setUserData(data.user);
       if (data.success) {
-        setUserData(data.user);
+        setUserData(data.userData); 
       } else {
         toast.error(data.message);
       }

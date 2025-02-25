@@ -2,7 +2,7 @@ import validator from "validator";
 import bcrypt from "bcrypt";
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
-import {v2 as cloudinary } from 'cloudinary'
+import { v2 as cloudinary } from "cloudinary";
 
 // Api to register user
 
@@ -105,17 +105,16 @@ const updateProfile = async (req, res) => {
     });
 
     if (imageFile) {
-        //upload image to cloudinary
-        const image = await cloudinary.uploader.upload(imageFile.path,{resource_type:'image'});
-        //update user image
-        const imageURL = imageUpload.secure_url;
-
-        await userModel.findByIdAndUpdate(userId,{image:imageURL})
+      //upload image to cloudinary
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+        resource_type: "image",
+      });
+      //update user image
+      const imageURL = imageUpload.secure_url;//update image url in user document
+      await userModel.findByIdAndUpdate(userId, { image: imageURL });
     }
 
-    res.json({success:true,message:"Profile Updated Successfully"})
-
-
+    res.json({ success: true, message: "Profile Updated Successfully" });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
