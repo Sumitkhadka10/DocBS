@@ -1,32 +1,64 @@
 import React, { useContext, useState } from "react";
 import { AppContext } from "../context/AppContext";
+import {assets} from '../assets/assets.js';
 
 const MyProfile = () => {
-  const { userData, setUserData } = useContext(AppContext);
+  const { userData, setUserData, token, backendUrl, loadUserProfileData} = useContext(AppContext);
   const [isEdit, setIsEdit] = useState(false);
 
-  const handleChange = (field, value) => {
-    setUserData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  // const handleChange = (field, value) => {
+  //   setUserData((prev) => ({
+  //     ...prev,
+  //     [field]: value,
+  //   }));
+  // };
 
-  const handleAddressChange = (line, value) => {
-    setUserData((prev) => ({
-      ...prev,
-      address: {
-        ...prev.address,
-        [line]: value,
-      },
-    }));
-  };
+  // const handleAddressChange = (line, value) => {
+  //   setUserData((prev) => ({
+  //     ...prev,
+  //     address: {
+  //       ...prev.address,
+  //       [line]: value,
+  //     },
+  //   }));
+  // };
 
-  if (!userData) return null;
+  // if (!userData) return null;
+  const [image,setImage] = useState(false)
 
-  return (
+  const updateUserProfileData = async () => {
+
+    try {
+      const formData = new FormData()
+      formData.append('name',userData.name)
+      formData.append('phone',userData.phone)
+      formData.append('address',JSON.stringify(userData.address))
+      formData.append('gender',userData.gender)
+      formData.append('dob',userData.dob)
+      
+      image && formData.append('image',image)
+      
+    } catch (error) {
+      
+    }
+
+  }
+
+  return userData && (
     <div className="max-w-lg flex flex-col gap-4 text-sm">
-      <img className="w-36 rounded" src={userData.image} alt="Profile" />
+      {
+        isEdit
+        ? <label htmlFor="image">
+          <div className="inline-block relative cursor-pointer">
+            <img className="w-36 rounded opacity-75" src={image ? URL.createObjectURL(image): userData.image} alt="" />
+            <img className="w-10 absolute bottom-12 right-12" src={image ? '': assets.upload_icon } alt="" />
+          </div>
+          <input onChange={(e)=>setImage(e.target.files[0])} type="file" id="image" hidden/>
+
+        </label>
+        :<img className="w-36 rounded" src={userData.image} alt="Profile" />
+      }
+      
 
       {isEdit ? (
         <input
@@ -119,12 +151,17 @@ const MyProfile = () => {
       </div>
 
       <div className="mt-10">
-        <button
+        {/* <button
           className="border border-primary px-8 py-2 rounded-full hover:bg-primary hover:text-white transition-all"
           onClick={() => setIsEdit(!isEdit)}
         >
           {isEdit ? "Save Information" : "Edit"}
-        </button>
+        </button> */}
+        {
+          isEdit ? 
+          <button className="border border-primary px-8 py-2 rounded-full hover:bg-primary hover:text-white transition-all" onClick={updateUserProfileData}>Save Information</button>
+          :<button className="border border-primary px-8 py-2 rounded-full hover:bg-primary hover:text-white transition-all" onClick={()=>setIsEdit(true)}>Edit</button>
+        }
       </div>
     </div>
   );
