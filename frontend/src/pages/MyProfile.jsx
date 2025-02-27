@@ -10,7 +10,6 @@ const MyProfile = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [image, setImage] = useState(false);
 
-  // Handles changes for text fields like name, phone, gender, dob
   const handleChange = (field, value) => {
     setUserData((prev) => ({
       ...prev,
@@ -18,7 +17,6 @@ const MyProfile = () => {
     }));
   };
 
-  // Handles changes specifically for address fields
   const handleAddressChange = (line, value) => {
     setUserData((prev) => ({
       ...prev,
@@ -31,7 +29,6 @@ const MyProfile = () => {
 
   if (!userData) return null;
 
-  // Updates user profile data by sending a request to the backend
   const updateUserProfileData = async () => {
     try {
       const formData = new FormData();
@@ -64,19 +61,18 @@ const MyProfile = () => {
 
   return (
     userData && (
-      <div className="max-w-lg flex flex-col gap-4 text-sm">
+      <div className="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-6 transition-all">
         {isEdit ? (
-          // Profile image upload in edit mode
           <label htmlFor="image">
-            <div className="inline-block relative cursor-pointer">
+            <div className="relative cursor-pointer flex justify-center">
               <img
-                className="w-36 rounded opacity-75"
+                className="w-36 h-36 rounded-full border-4 border-blue-500 object-cover"
                 src={image ? URL.createObjectURL(image) : userData.image}
                 alt="Profile"
               />
               {!image && (
                 <img
-                  className="w-10 absolute bottom-12 right-12"
+                  className="w-10 absolute bottom-2 right-2 opacity-80"
                   src={assets.upload_icon}
                   alt="Upload"
                 />
@@ -90,34 +86,38 @@ const MyProfile = () => {
             />
           </label>
         ) : (
-          <img className="w-36 rounded" src={userData.image || assets.defaultProfileImage} alt="Profile" />
-        )}
-
-        {isEdit ? (
-          <input
-            className="bg-gray-50 text-3xl font-medium max-w-60 mt-4"
-            type="text"
-            value={userData.name}
-            onChange={(e) => handleChange("name", e.target.value)}
+          <img
+            className="w-36 h-36 rounded-full border-4 border-blue-500 object-cover mx-auto"
+            src={userData.image || assets.defaultProfileImage}
+            alt="Profile"
           />
-        ) : (
-          <p className="text-3xl font-medium text-neutral-800 mt-4">
-            {userData.name}
-          </p>
         )}
 
-        <hr className="bg-zinc-400 h-[1px] border-none" />
+        <div className="text-center mt-4">
+          {isEdit ? (
+            <input
+              className="bg-gray-100 text-xl font-semibold text-center border border-gray-300 px-4 py-2 rounded-md focus:ring-2 focus:ring-blue-500"
+              type="text"
+              value={userData.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+            />
+          ) : (
+            <p className="text-2xl font-semibold text-gray-800">{userData.name}</p>
+          )}
+        </div>
 
-        <div>
-          <p className="text-neutral-500">Contact Information</p>
-          <div className="grid grid-cols-[1fr_3fr] gap-y-2.5 mt-3 text-neutral-700">
-            <p className="font-medium">Email id:</p>
+        <hr className="my-4 border-gray-300" />
+
+        <div className="text-gray-600">
+          <p className="text-lg font-semibold">Contact Information</p>
+          <div className="mt-3 space-y-2">
+            <p className="font-medium">Email:</p>
             <p className="text-blue-500">{userData.email}</p>
 
-            <p className="font-medium">Phone Number:</p>
+            <p className="font-medium">Phone:</p>
             {isEdit ? (
               <input
-                className="bg-gray-100 max-w-52"
+                className="bg-gray-100 border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-2 focus:ring-blue-500"
                 type="text"
                 value={userData.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
@@ -130,35 +130,31 @@ const MyProfile = () => {
             {isEdit ? (
               <>
                 <input
-                  className="bg-gray-50 mb-2"
+                  className="bg-gray-100 border border-gray-300 rounded-md px-3 py-2 w-full mb-2 focus:ring-2 focus:ring-blue-500"
                   type="text"
                   value={userData.address?.line1 || ""}
                   onChange={(e) => handleAddressChange("line1", e.target.value)}
                 />
                 <input
-                  className="bg-gray-50"
+                  className="bg-gray-100 border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-2 focus:ring-blue-500"
                   type="text"
                   value={userData.address?.line2 || ""}
                   onChange={(e) => handleAddressChange("line2", e.target.value)}
                 />
               </>
             ) : (
-              <p className="text-gray-500">
-                {userData.address?.line1}
-                <br />
-                {userData.address?.line2}
-              </p>
+              <p className="text-gray-500">{userData.address?.line1}<br />{userData.address?.line2}</p>
             )}
           </div>
         </div>
 
-        <div>
-          <p className="text-neutral-500 underline mt-3">Basic Information</p>
-          <div className="grid grid-cols-[1fr_3fr] gap-y-2.5 mt-3 text-neutral-700">
+        <div className="text-gray-600 mt-5">
+          <p className="text-lg font-semibold">Basic Information</p>
+          <div className="mt-3 space-y-2">
             <p className="font-medium">Gender:</p>
             {isEdit ? (
               <select
-                className="max-w-20 bg-gray-100"
+                className="bg-gray-100 border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-2 focus:ring-blue-500"
                 value={userData.gender}
                 onChange={(e) => handleChange("gender", e.target.value)}
               >
@@ -172,7 +168,7 @@ const MyProfile = () => {
             <p className="font-medium">BirthDate:</p>
             {isEdit ? (
               <input
-                className="max-w-28 bg-gray-100"
+                className="bg-gray-100 border border-gray-300 rounded-md px-3 py-2 w-full focus:ring-2 focus:ring-blue-500"
                 type="date"
                 value={userData.dob || ""}
                 onChange={(e) => handleChange("dob", e.target.value)}
@@ -183,17 +179,17 @@ const MyProfile = () => {
           </div>
         </div>
 
-        <div className="mt-10">
+        <div className="mt-8 text-center">
           {isEdit ? (
             <button
-              className="border border-primary px-8 py-2 rounded-full hover:bg-primary hover:text-white transition-all"
+              className="border-2 border-blue-500 text-blue-500 px-6 py-2 rounded-full hover:bg-blue-500 hover:text-white transition-all"
               onClick={updateUserProfileData}
             >
               Save Information
             </button>
           ) : (
             <button
-              className="border border-primary px-8 py-2 rounded-full hover:bg-primary hover:text-white transition-all"
+              className="border-2 border-blue-500 text-blue-500 px-6 py-2 rounded-full hover:bg-blue-500 hover:text-white transition-all"
               onClick={() => setIsEdit(true)}
             >
               Edit
