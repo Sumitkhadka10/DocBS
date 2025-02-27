@@ -1,11 +1,27 @@
-import React from 'react';
-import { assets } from '../assets/assets';
+import React, { useState } from "react";
+import { assets } from "../assets/assets";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 const Contact = () => {
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+
+  const handleMapLoad = () => {
+    setIsMapLoaded(true);
+  };
+
   return (
-    <div className="px-4 py-10">
+    <div className="px-4 py-8">
+      {/* SEO Optimization: Title & Meta */}
+      <head>
+        <title>Contact Us - DoctorBookingSystem</title>
+        <meta
+          name="description"
+          content="Get in touch with DoctorBookingSystem for any booking inquiries, feedback, or support."
+        />
+      </head>
+
       {/* Heading Section */}
-      <div className="text-center text-3xl font-semibold pt-10 text-gray-700">
+      <div className="text-center text-3xl font-semibold pt-4 text-gray-700">
         <p>
           CONTACT <span className="text-blue-600">US</span>
         </p>
@@ -18,11 +34,12 @@ const Contact = () => {
         <div className="flex flex-col justify-center items-start gap-6 w-full md:w-1/2">
           <p className="font-semibold text-xl text-gray-600">Our Office</p>
           <p className="text-gray-500">
-            Kathmandu, Nepal <br /> Kageshwori, Manohara-09
+          Naxal Bhagawati Marga, <br /> Kathmandu,Nepal
           </p>
           <p className="text-gray-500">
             Tel: <span className="font-medium">+977 9813600000</span> <br />
-            Email: <span className="font-medium">doctorbookingsystem@gmail.com</span>
+            Email:{" "}
+            <span className="font-medium">doctorbookingsystem@gmail.com</span>
           </p>
           <div className="mt-4 flex gap-4">
             <a
@@ -74,33 +91,63 @@ const Contact = () => {
         />
       </div>
 
+      {/* Section Divider */}
+      <div className="border-t border-gray-300 my-10"></div>
+
       {/* Location Map Section */}
       <div className="mt-10">
-        <h3 className="text-center text-xl font-semibold text-gray-700 mb-4">Find Us Here</h3>
-        <div className="flex justify-center">
+        <h3 className="text-center text-xl font-semibold text-gray-700 mb-4">
+          Find Us Here
+        </h3>
+        <div className="flex justify-center relative">
+          {!isMapLoaded && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+              <div className="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md">
+                Loading Map...
+              </div>
+            </div>
+          )}
           <iframe
             title="Office Location"
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.3871411347396!2d85.3240364150613!3d27.708955682792284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb198fd987d119%3A0x2d3aee8356bc872!2sKathmandu%2C%20Nepal!5e0!3m2!1sen!2snp!4v1673996145263!5m2!1sen!2snp"
             width="100%"
             height="300"
             style={{ border: 0 }}
+            onLoad={handleMapLoad}
             allowFullScreen=""
             loading="lazy"
           ></iframe>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="bg-green-600 text-white px-4 py-2 rounded-full shadow-md">
+              <FaMapMarkerAlt size={20} />
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Section Divider */}
+      <div className="border-t border-gray-300 my-10"></div>
+
       {/* Additional Information Section */}
       <div className="bg-gray-100 py-6 px-4 rounded-lg shadow-md mt-10">
-        <h3 className="text-xl font-semibold text-gray-700 mb-4">Why Contact Us?</h3>
-        <p className="text-gray-500 mb-2">For booking-related inquiries and support</p>
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">
+          Why Contact Us?
+        </h3>
+        <p className="text-gray-500 mb-2">
+          For booking-related inquiries and support
+        </p>
         <p className="text-gray-500 mb-2">To provide feedback or suggestions</p>
-        <p className="text-gray-500">For partnership and collaboration opportunities</p>
+        <p className="text-gray-500">
+          For partnership and collaboration opportunities
+        </p>
       </div>
 
       {/* Footer Note */}
       <div className="mt-10 text-center text-gray-500">
-        <p>We value your feedback and inquiries. Feel free to reach out to us anytime!</p>
+        <p>
+          We value your feedback and inquiries. Feel free to reach out to us
+          anytime!
+        </p>
       </div>
     </div>
   );
