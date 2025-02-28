@@ -102,7 +102,9 @@ const MyProfile = () => {
               onChange={(e) => handleChange("name", e.target.value)}
             />
           ) : (
-            <p className="text-2xl font-semibold text-gray-800">{userData.name}</p>
+            <p className="text-2xl font-semibold text-gray-800">
+              {userData.name}
+            </p>
           )}
         </div>
 
@@ -143,7 +145,11 @@ const MyProfile = () => {
                 />
               </>
             ) : (
-              <p className="text-gray-500">{userData.address?.line1}<br />{userData.address?.line2}</p>
+              <p className="text-gray-500">
+                {userData.address?.line1}
+                <br />
+                {userData.address?.line2}
+              </p>
             )}
           </div>
         </div>
