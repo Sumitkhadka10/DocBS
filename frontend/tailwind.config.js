@@ -8,22 +8,22 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#5f6FFF", // Preserves your existing primary color
-          900: '#0d47a1',     // New shade
-          600: '#1976d2'      // New shade
+          DEFAULT: "#5f6FFF", // Main primary color
+          900: "#0d47a1",
+          600: "#1976d2"
         },
         accent: {
-          300: '#4dd0e1',     // New accent colors
-          400: '#26c6da',
-          500: '#00bcd4',
-          600: '#00acc1',
+          300: "#4dd0e1",
+          400: "#26c6da",
+          500: "#00bcd4",
+          600: "#00acc1",
         }
       },
       gridTemplateColumns: {
-        'auto': 'repeat(auto-fill, minmax(200px, 1fr))' // Your existing setting
+        'auto': 'repeat(auto-fill, minmax(200px, 1fr))'
       },
       animation: {
-        'pulse-slow': 'pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-slow': 'pulse-slow 8s ease-custom infinite',
         'rotate': 'rotate 60s linear infinite',
         'fadeInUp': 'fadeInUp 0.8s ease-out'
       },
@@ -46,6 +46,9 @@ export default {
             transform: 'translateY(0)'
           }
         }
+      },
+      transitionTimingFunction: {
+        'custom': 'cubic-bezier(0.4, 0, 0.2, 1)'
       }
     },
   },
