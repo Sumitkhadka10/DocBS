@@ -26,7 +26,7 @@ const HeaderPage = () => {
   ];
 
   return (
-    <div className="relative bg-gradient-to-br from-primary-900 to-primary-600 min-h-[90vh] overflow-hidden">
+    <div className="relative bg-primary min-h-[90vh] overflow-hidden">
       <div className="relative max-w-7xl mx-auto px-4 lg:px-8 py-20 flex flex-col lg:flex-row items-center gap-12">
         {/* Text Content */}
         <div className="lg:w-1/2 text-center lg:text-left space-y-8">
@@ -77,13 +77,13 @@ const HeaderPage = () => {
           </button>
         </div>
 
-        {/* Image Section - Full Display */}
+        {/* Image Section */}
         <div className="lg:w-1/2 relative mt-12 lg:mt-0 w-full">
           <div className="relative w-full h-full overflow-visible">
             <img
               src={assets.header_img}
               alt="Medical Consultation"
-              className="w-full h-auto object-center rounded-3xl shadow-2xl"
+              className="w-full h-auto object-cover rounded-3xl shadow-2xl"
               loading="eager"
             />
             

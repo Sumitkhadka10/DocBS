@@ -4,65 +4,74 @@ import { assets } from '../assets/assets';
 const Banner = () => {
   return (
     <div className="relative w-full min-h-screen flex items-center bg-primary text-white overflow-hidden isolate">
-      {/* Subtle Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-teal-400/10 to-purple-400/10 animate-pulse-slow" />
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute w-[40rem] h-[40rem] bg-gradient-radial from-accent-500/10 to-transparent top-0 left-0 animate-pulse-slow" />
+        <div className="absolute w-[50rem] h-[50rem] bg-gradient-conic from-primary-700/20 via-transparent to-transparent bottom-0 right-0 animate-rotate" />
+      </div>
 
       {/* Main Content */}
-      <div className="relative z-10 container mx-auto px-4 py-12 md:py-16 lg:py-20">
-        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 lg:px-8 py-20">
+        <div className="flex flex-col lg:flex-row items-center gap-12">
           {/* Text Content */}
-          <div className="lg:w-[55%] space-y-6">
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-              <span className="bg-gradient-to-r from-teal-300 to-purple-300 bg-clip-text text-transparent">
-                Find Your Trusted
+          <div className="lg:w-1/2 space-y-8 text-center lg:text-left">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight animate-fadeInUp">
+              <span className="relative inline-block">
+                <span className="absolute inset-0 bg-gradient-to-r from-accent-400 to-accent-600 transform -skew-x-12 -z-10" />
+                <span className="relative text-white">Your Personalized</span>
               </span>
               <br />
-              <span className="text-gray-100">Healthcare Partner</span>
+              <span className="text-gray-100">Healthcare Solution</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-300 leading-relaxed border-l-4 border-teal-400/40 pl-4">
-              Connect with certified specialists, schedule appointments effortlessly, 
-              and experience personalized care tailored to your needs.{" "}
-              <span className="text-teal-300/90 font-medium">Book now</span> and take 
-              the first step towards better health.
-            </p>
+            <div className="p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 max-w-2xl mx-auto lg:mx-0">
+              <p className="text-xl text-gray-200 leading-relaxed">
+                Connect with certified medical specialists through our intelligent matching system. 
+                Experience seamless scheduling and personalized care designed around your unique health needs.
+              </p>
+            </div>
+
+            {/* Trust Badges */}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10">
+                <div className="h-2 w-2 bg-accent-400 rounded-full animate-pulse" />
+                <span className="text-sm">24/7 Availability</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/10">
+                <div className="h-2 w-2 bg-accent-400 rounded-full animate-pulse" />
+                <span className="text-sm">150+ Specialties</span>
+              </div>
+            </div>
           </div>
 
           {/* Image Container */}
-          <div className="lg:w-[45%] w-full relative group">
-            <div className="relative overflow-hidden rounded-xl shadow-2xl transform transition-transform duration-500 hover:-translate-y-2">
-              <div className="absolute inset-0 bg-gradient-to-br from-teal-400/20 to-purple-400/10 animate-glow" />
+          <div className="lg:w-1/2 relative group w-full">
+            <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white/20 transform rotate-1 hover:rotate-0 transition-transform duration-300">
               <img
                 src={assets.appointment_img}
-                alt="Doctor Consultation"
-                className="w-full h-auto object-cover relative z-10"
+                alt="Medical Consultation"
+                className="w-full h-auto object-cover aspect-square"
+                loading="eager"
               />
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/40 to-transparent" />
+            </div>
+
+            {/* Floating Stats */}
+            <div className="absolute -left-8 top-8 hidden lg:block">
+              <div className="bg-white/5 backdrop-blur-sm p-4 rounded-2xl space-y-3 shadow-xl border border-white/10">
+                {['98% Success Rate', '5k+ Patients', 'Instant Booking'].map((stat, index) => (
+                  <div key={index} className="flex items-center gap-2 group">
+                    <div className="h-2 w-2 bg-accent-400 rounded-full animate-pulse" />
+                    <span className="text-sm text-gray-200 group-hover:text-white transition-colors">
+                      {stat}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Animated Elements */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-        {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="w-2 h-2 bg-teal-400/40 rounded-full animate-pulse"
-            style={{ animationDelay: `${i * 0.2}s` }}
-          />
-        ))}
-      </div>
-
-      <style jsx>{`
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; }
-        }
-        @keyframes glow {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.6; transform: scale(1.05); }
-        }
-      `}</style>
     </div>
   );
 };

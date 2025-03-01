@@ -1,61 +1,131 @@
 import React from 'react';
 import { assets } from '../assets/assets';
-import { FaPhoneAlt, FaEnvelope, FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa';
+import { FaPhoneAlt, FaEnvelope, FaFacebookF, FaTwitter, FaInstagram, FaMapMarkerAlt } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
 
 const Footer = () => {
+  // Scroll to top function
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
-    <div className='md:mx-10'>
-        <div className='flex flex-col sm:grid grid-cols-[3fr_1fr_1fr] gap-14 my-10 mt-40 text-sm'>
-            {/* ...left.... */}
-            <div>
-                <img className='mb-5 w-48' src={assets.logo} alt="Logo" />
-                <p className='w-full md:w-2/3 text-gray-600 leading-6'>
-                  Our mission is to simplify healthcare by connecting you with trusted doctors. Book appointments, manage your schedule, and access health resources effortlessly. We prioritize your privacy and security while providing a seamless and convenient experience.
+    <footer className="bg-white border-t border-gray-100 mt-24">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 mb-12">
+          
+          {/* Brand Section */}
+          <div className="space-y-5">
+            <img 
+              src={assets.logo} 
+              alt="HealthCare Logo" 
+              className="w-40 h-auto mb-4 cursor-pointer"
+              onClick={scrollToTop}
+            />
+            <p className="text-gray-500 text-[15px] leading-relaxed">
+              Connecting you with trusted healthcare professionals. 
+              Book appointments seamlessly and manage your health 
+              with confidence.
+            </p>
+          </div>
+
+          {/* Navigation Links */}
+          <div className="space-y-5">
+            <h3 className="text-gray-800 font-semibold mb-4 text-lg">Quick Links</h3>
+            <ul className="space-y-3">
+              {[
+                { name: 'Home', path: '/' },
+                { name: 'Doctors', path: '/doctors' },
+                { name: 'About', path: '/about' },
+                { name: 'Contact', path: '/contact' }
+              ].map((link) => (
+                <li key={link.name}>
+                  <NavLink 
+                    to={link.path}
+                    onClick={scrollToTop}
+                    className={({ isActive }) => 
+                      `text-gray-500 hover:text-primary transition-colors text-[15px] ${
+                        isActive ? 'text-primary font-medium' : ''
+                      }`
+                    }
+                  >
+                    {link.name}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact Information */}
+          <div className="space-y-5">
+            <h3 className="text-gray-800 font-semibold mb-4 text-lg">Contact Us</h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <FaMapMarkerAlt className="flex-shrink-0 mt-1 text-gray-500 text-sm" />
+                <p className="text-gray-500 text-[15px]">
+                Naxal Bhagawati Marga,<br/>
+                  Kathmandu, Nepal 44600
                 </p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <FaPhoneAlt className="text-gray-500 text-sm" />
+                <a href="tel:+9779813000000" className="text-gray-500 hover:text-primary transition-colors text-[15px]">
+                  +977 981 300 0000
+                </a>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <FaEnvelope className="text-gray-500 text-sm" />
+                <a href="mailto:doctorbooking@gmail.com" className="text-gray-500 hover:text-primary transition-colors text-[15px]">
+                  doctorbooking@gmail.com
+                </a>
+              </div>
             </div>
-            {/* ...middle.... */}
-            <div>
-                <p className='text-xl font-medium mb-5'>Company</p>
-                <ul className='flex flex-col gap-2 text-gray-600'>
-                    <li className="hover:text-primary cursor-pointer">Home</li>
-                    <li className="hover:text-primary cursor-pointer">About Us</li>
-                    <li className="hover:text-primary cursor-pointer">Contact Us</li>
-                    <li className="hover:text-primary cursor-pointer">Privacy Policy</li>
-                </ul>
-            </div>
-            {/* ...right.... */}
-            <div>
-                <p className='text-xl font-medium mb-5'>Get in Touch</p>
-                <ul className='flex flex-col gap-2 text-gray-600'>
-                <li className="flex items-center gap-2 hover:text-primary cursor-pointer transition-all">
-                      <FaPhoneAlt />+9779813000000
-                    </li>
-                    <li className="flex items-center gap-2 hover:text-primary cursor-pointer transition-all">
-                      <FaEnvelope /> doctorbookingsystem@gmail.com
-                    </li>
-                    <li className="flex gap-4 mt-3">
-              <a href="https://facebook.com" className="hover:text-primary transition-all">
-                <FaFacebookF />
-              </a>
-              <a href="https://twitter.com" className="hover:text-primary transition-all">
-                <FaTwitter />
-              </a>
-              <a href="https://instagram.com" className="hover:text-primary transition-all">
-                <FaInstagram />
-              </a>
-            </li>
-                </ul>
-            </div>
+          </div>
         </div>
-        <div>
-            {/* ....Copyright Text.... */}
+
+        {/* Divider */}
+        <hr className="my-8 border-gray-100" />
+
+        {/* Bottom Section */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-gray-500 text-sm text-center">
+           Copyright© 2024 HealthCare. All rights reserved.
+          </p>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex gap-4 text-gray-500">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" 
+                className="hover:text-primary transition-colors">
+                <FaFacebookF className="text-lg" />
+              </a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer"
+                className="hover:text-primary transition-colors">
+                <FaTwitter className="text-lg" />
+              </a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer"
+                className="hover:text-primary transition-colors">
+                <FaInstagram className="text-lg" />
+              </a>
+            </div>
+          </div>
+
+          <div className="flex gap-6 text-sm">
+            <a href="#" className="text-gray-500 hover:text-primary transition-colors">
+              Privacy Policy
+            </a>
+            <a href="#" className="text-gray-500 hover:text-primary transition-colors">
+              Terms of Service
+            </a>
+          </div>
         </div>
-        <hr />
-        <p className='py-5 text-sm text-center text-gray-600'>
-       Copyright © 2025 DoctorBookingSystem. All Rights Reserved | <a href="/privacy-policy" className="text-primary hover:text-primary-dark">Privacy Policy</a> | <a href="/terms" className="text-primary hover:text-primary-dark">Terms & Conditions</a>
-      </p>
-    </div>
+      </div>
+    </footer>
   );
-}
+};
 
 export default Footer;
