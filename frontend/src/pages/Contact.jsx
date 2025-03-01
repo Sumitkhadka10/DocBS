@@ -6,19 +6,14 @@ import { MdLocationOn } from "react-icons/md";
 const Contact = () => {
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  const handleMapLoad = () => {
-    setIsMapLoaded(true);
-  };
+  const handleMapLoad = () => setIsMapLoaded(true);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
       {/* SEO Optimization */}
       <head>
         <title>Contact Us - DoctorBookingSystem</title>
-        <meta
-          name="description"
-          content="Get in touch with DoctorBookingSystem for any booking inquiries, feedback, or support."
-        />
+        <meta name="description" content="Get in touch with DoctorBookingSystem for any booking inquiries, feedback, or support." />
       </head>
 
       {/* Main Heading */}
@@ -47,89 +42,55 @@ const Contact = () => {
             </div>
           </div>
 
+          {/* Contact Details */}
           <div className="space-y-6 mb-8">
             <div className="flex items-center gap-4 group">
               <FaPhoneAlt className="text-gray-500 group-hover:text-blue-600 transition-colors" />
-              <span className="text-gray-600 group-hover:text-blue-600 transition-colors">
-                +977 9813600000
-              </span>
+              <span className="text-gray-600 group-hover:text-blue-600 transition-colors">+977 9813600000</span>
             </div>
             <div className="flex items-center gap-4 group">
               <FaEnvelope className="text-gray-500 group-hover:text-blue-600 transition-colors" />
-              <span className="text-gray-600 group-hover:text-blue-600 transition-colors">
-                doctorbookingsystem@gmail.com
-              </span>
+              <span className="text-gray-600 group-hover:text-blue-600 transition-colors">doctorbookingsystem@gmail.com</span>
             </div>
           </div>
 
           {/* Social Links */}
           <div className="flex gap-4 mb-8">
-            <a
-              href="https://facebook.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-            >
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-3 text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
               <FaFacebook size={24} />
             </a>
-            <a
-              href="https://twitter.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 text-blue-400 hover:bg-blue-50 rounded-full transition-colors"
-            >
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="p-3 text-blue-400 hover:bg-blue-50 rounded-full transition-colors">
               <FaTwitter size={24} />
             </a>
-            <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-3 text-pink-500 hover:bg-pink-50 rounded-full transition-colors"
-            >
+            <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="p-3 text-pink-500 hover:bg-pink-50 rounded-full transition-colors">
               <FaInstagram size={24} />
             </a>
           </div>
 
           {/* Action Buttons */}
           <div className="grid md:grid-cols-2 gap-4">
-            <a
-              href="mailto:doctorbookingsystem@gmail.com"
-              className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-md transition-colors"
-            >
-              <FaEnvelope />
-              Email Support
+            <a href="mailto:doctorbookingsystem@gmail.com" className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-md transition-colors">
+              <FaEnvelope /> Email Support
             </a>
-            <a
-              href="tel:+9779813600000"
-              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-colors"
-            >
-              <FaPhoneAlt />
-              Emergency Call
+            <a href="tel:+9779813600000" className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-md transition-colors">
+              <FaPhoneAlt /> Emergency Call
             </a>
           </div>
         </div>
 
         {/* Contact Illustration */}
         <div className="hidden md:block relative rounded-2xl overflow-hidden shadow-lg bg-gray-50">
-          <img
-            className="w-full h-full object-cover"
-            src={assets.contact_image}
-            alt="Healthcare Professionals"
-          />
+          <img className="w-full h-full object-cover" src={assets.contact_image} alt="Healthcare Professionals" />
         </div>
       </div>
 
       {/* Interactive Map Section */}
       <div className="mb-20">
-        <h3 className="text-2xl font-semibold text-gray-800 mb-8 text-center">
-          Our Healthcare Network
-        </h3>
+        <h3 className="text-2xl font-semibold text-gray-800 mb-8 text-center">Our Healthcare Network</h3>
         <div className="relative rounded-2xl overflow-hidden shadow-xl border-4 border-white">
           {!isMapLoaded && (
             <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
-              <div className="animate-pulse text-gray-500">
-                Loading healthcare facilities map...
-              </div>
+              <div className="animate-pulse text-gray-500">Loading healthcare facilities map...</div>
             </div>
           )}
           <iframe
@@ -152,9 +113,7 @@ const Contact = () => {
 
       {/* Enhanced Healthcare Services Section */}
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl shadow-lg mb-12">
-        <h3 className="text-3xl font-bold text-gray-800 mb-12 text-center">
-          Our Healthcare Support Services
-        </h3>
+        <h3 className="text-3xl font-bold text-gray-800 mb-12 text-center">Our Healthcare Support Services</h3>
         <div className="grid md:grid-cols-3 gap-8">
           {/* Appointment Card */}
           <div className="group relative bg-white p-8 rounded-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-default">
@@ -164,12 +123,8 @@ const Contact = () => {
                 <path d="M17 3h4a1 1 0 011 1v16a1 1 0 01-1 1H3a1 1 0 01-1-1V4a1 1 0 011-1h4V1h2v2h6V1h2v2zm-2 2H9v2H7V5H4v4h16V5h-3v2h-2V5zm5 6H4v8h16v-8zM6 14h2v2H6v-2zm4 0h8v2h-8v-2z"/>
               </svg>
             </div>
-            <h4 className="text-xl font-semibold text-gray-800 mb-4">
-              Instant Appointments
-            </h4>
-            <p className="text-gray-600 mb-4">
-              24/7 access to specialists with real-time availability and automated reminders
-            </p>
+            <h4 className="text-xl font-semibold text-gray-800 mb-4">Instant Appointments</h4>
+            <p className="text-gray-600 mb-4">24/7 access to specialists with real-time availability and automated reminders</p>
             <div className="text-sm text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <span className="font-medium">98% Success Rate</span> • 2min Average Response
             </div>
@@ -183,12 +138,8 @@ const Contact = () => {
                 <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16zM11 7h2v2h-2V7zm0 4h2v6h-2v-6z"/>
               </svg>
             </div>
-            <h4 className="text-xl font-semibold text-gray-800 mb-4">
-              Patient Support
-            </h4>
-            <p className="text-gray-600 mb-4">
-              Dedicated care coordination for insurance, referrals, and special needs
-            </p>
+            <h4 className="text-xl font-semibold text-gray-800 mb-4">Patient Support</h4>
+            <p className="text-gray-600 mb-4">Dedicated care coordination for insurance, referrals, and special needs</p>
             <div className="text-sm text-green-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <span className="font-medium">24/7 Assistance</span> • Multilingual Staff
             </div>
@@ -196,30 +147,19 @@ const Contact = () => {
 
           {/* Partnership Card */}
           <div className="group relative bg-white p-8 rounded-xl transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-default">
-            <div className="absolute inset-0 border-2 border-transparent group-hover:border-purple-200 rounded-xl transition-all duration-300"></div>
-            <div className="text-purple-600 mb-6 transition-colors duration-300 group-hover:text-purple-700">
+            <div className="absolute inset-0 border-2 border-transparent group-hover:border-orange-200 rounded-xl transition-all duration-300"></div>
+            <div className="text-orange-600 mb-6 transition-colors duration-300 group-hover:text-orange-700">
               <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 14v2a6 6 0 00-6 6H4a8 8 0 018-8zm0-1c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm9.446 9.032l1.504 1.504-1.414 1.414-1.504-1.504a4 4 0 111.414-1.414zM18 20a2 2 0 100-4 2 2 0 000 4z"/>
+                <path d="M18 4a1 1 0 011 1v14a1 1 0 01-1 1H6a1 1 0 01-1-1V5a1 1 0 011-1h12zm0-2H6a3 3 0 00-3 3v14a3 3 0 003 3h12a3 3 0 003-3V5a3 3 0 00-3-3z"/>
               </svg>
             </div>
-            <h4 className="text-xl font-semibold text-gray-800 mb-4">
-              Medical Partnerships
-            </h4>
-            <p className="text-gray-600 mb-4">
-              Collaborate with our network to enhance healthcare delivery and accessibility
-            </p>
-            <div className="text-sm text-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <span className="font-medium">500+ Partners</span> • HIPAA Compliant
+            <h4 className="text-xl font-semibold text-gray-800 mb-4">Care Partnerships</h4>
+            <p className="text-gray-600 mb-4">Collaborating with trusted clinics for a comprehensive care experience</p>
+            <div className="text-sm text-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <span className="font-medium">Exclusive Benefits</span> • Nationwide Access
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Closing Statement */}
-      <div className="text-center text-gray-600 mb-8">
-        <p className="text-lg font-medium">
-          Committed to Your Health Journey - Connect with Us Anytime
-        </p>
       </div>
     </div>
   );
