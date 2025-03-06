@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import { v2 as cloudinary } from "cloudinary";
+import doctorModel from "../models/doctorModel.js";
 
 // Api to register user
 
@@ -110,7 +111,7 @@ const updateProfile = async (req, res) => {
         resource_type: "image",
       });
       //update user image
-      const imageURL = imageUpload.secure_url;//update image url in user document
+      const imageURL = imageUpload.secure_url; //update image url in user document
       await userModel.findByIdAndUpdate(userId, { image: imageURL });
     }
 
@@ -120,5 +121,55 @@ const updateProfile = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+// API to book appointment
+const bookAppointment = async (req, res) => {
+  try {
+    const { userId, docId, slotDate, slotTime } = req.body;
+    const docData = await doctorModel.findById(docId).select("-password");
 
-export { registerUser, loginUser, getProfile, updateProfile };
+    if (!docData.available) {
+      return res.json({ success: false, message: "Doctor not available" });
+    }
+
+    let slots_booked = docData.slots_booked;
+    //check if slot is already booked
+    if (slots_booked[slotDate]) {
+      if (slots_booked[slotDate].includes(slotTime)) {
+        return res.json({ success: false, message: "Slot already booked" });
+      } else {
+        slots_booked[slotDate].push(slotTime);
+      }
+    } else {
+      slots_booked[slotDate] = [];
+      slots_booked[slotDate].push(slotTime);
+    }
+
+    const userData = await userModel.findById(userId).select("-password");
+
+    delete docData.slots_booked; //because when we save appointment we don't need this field. we dont want the history of booked slots in appointment document
+
+    const appointmentData = {
+      userId,
+      docId,
+      userData,
+      docData,
+      amount:docData.fee,
+      slotTime,
+      slotDate,
+      date: Date.now(),
+    }
+    const newAppointment = new appointmentModel(appointmentData);
+    await newAppointment.save();
+
+    //save slots data in docData
+    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+
+    res.json({ success: true, message: "Appointment Booked Successfully" });
+
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment };
