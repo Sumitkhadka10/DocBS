@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 
 const MyAppointments = () => {
-  const { backendUrl, token } = useContext(AppContext);
+  const { backendUrl, token, getDoctorsData } = useContext(AppContext);
 
   const [appointments, setAppointments] = useState([]);
   const months = [
@@ -48,6 +48,7 @@ const MyAppointments = () => {
       if (data.success) {
         toast.success(data.message);
         getUserAppointments();
+        getDoctorsData();
       } else {
         toast.error(data.message);}
       
