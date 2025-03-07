@@ -6,72 +6,186 @@ import { AppContext } from '../context/AppContext';
 
 const Navbar = () => {
     const navigate = useNavigate();
-
-    const {token,setToken,userData} = useContext(AppContext)
-
-    const [showMenu, setShowMenu] = useState(false)
-    // const [token,setToken] = useState(true)
+    const { token, setToken, userData } = useContext(AppContext);
+    const [showMenu, setShowMenu] = useState(false);
 
     const logout = () => {
-        setToken(false)
-        localStorage.removeItem('token')
-    }
+        setToken(false);
+        localStorage.removeItem('token');
+    };
 
-  return (
-    <div className='flex items-center justify-between text-sm py-4 mb-5 border-b border-b-gray 400 '>
-      <img onClick={()=>navigate('/')} className='w-44 cursor-pointer' src={assets.logo} alt="Logo" />
-        <ul className='hidden md:flex items-start gap-5 font-medium'>
-            <NavLink to='/'>
-                <li className='py-1'>Home</li>
-                <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-autoh hidden' />
-            </NavLink>
-            <NavLink to='/doctors'>
-                <li className='py-1'>All Doctors</li>
-                <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-autoh hidden' />
-            </NavLink>
-            <NavLink to='/about'>
-                <li className='py-1'>About</li>
-                <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-autoh hidden' />
-            </NavLink>
-            <NavLink to='/contact'>
-                <li className='py-1'>Contact</li>
-                <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-autoh hidden' />
-            </NavLink>
-        </ul>
-        <div className='flex-items-center gap-4'>
-            {
-                token && userData
-                ? <div className='flex items-center gap-2 cursor-pointer group relative'>
-                    <img className='w-8 rounded-full' src={userData.image} alt="" />
-                    <img className='w-2.5' src={assets.dropdown_icon} alt="" />
-                    <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block '>
-                        <div className='min-w-48 bg-stone-100 rounded flex flex-col gap-4 p-4'>
-                            <p onClick={()=>navigate('/my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
-                            <p onClick={()=>navigate('/my-appointments')} className='hover:text-black cursor-pointer'>My Appointments</p>
-                            <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
+    return (
+        <div className='border-b border-gray-200 py-3 px-4 mb-6'>
+            <div className='flex items-center justify-between'>
+                {/* Logo */}
+                <div className='flex items-center'>
+                    <img 
+                        onClick={() => navigate('/')} 
+                        className='w-36 cursor-pointer hover:opacity-80 transition-opacity' 
+                        src={assets.logo} 
+                        alt="Logo" 
+                    />
+                </div>
+
+                {/* Desktop Navigation */}
+                <div className='hidden md:flex items-center space-x-1'>
+                    <NavLink to='/' className={({isActive}) => 
+                        `px-4 py-2 rounded-lg transition-colors ${isActive ? 'text-indigo-700 font-medium border-b-2 border-indigo-500' : 'hover:text-indigo-600 text-gray-700'}`
+                    }>
+                        Home
+                    </NavLink>
+                    <NavLink to='/doctors' className={({isActive}) => 
+                        `px-4 py-2 rounded-lg transition-colors ${isActive ? 'text-indigo-700 font-medium border-b-2 border-indigo-500' : 'hover:text-indigo-600 text-gray-700'}`
+                    }>
+                        All Doctors
+                    </NavLink>
+                    <NavLink to='/about' className={({isActive}) => 
+                        `px-4 py-2 rounded-lg transition-colors ${isActive ? 'text-indigo-700 font-medium border-b-2 border-indigo-500' : 'hover:text-indigo-600 text-gray-700'}`
+                    }>
+                        About
+                    </NavLink>
+                    <NavLink to='/contact' className={({isActive}) => 
+                        `px-4 py-2 rounded-lg transition-colors ${isActive ? 'text-indigo-700 font-medium border-b-2 border-indigo-500' : 'hover:text-indigo-600 text-gray-700'}`
+                    }>
+                        Contact
+                    </NavLink>
+                </div>
+
+                {/* User Section / Login Button */}
+                <div className='flex items-center'>
+                    {token && userData ? (
+                        <div className='relative group'>
+                            <div className='flex items-center gap-2 p-2 rounded-full cursor-pointer hover:bg-gray-50 transition-colors'>
+                                <img className='w-8 h-8 rounded-full object-cover border-2 border-indigo-100' src={userData.image} alt="User" />
+                                <span className='text-gray-700 font-medium pr-1 hidden sm:inline'>{userData.name || 'User'}</span>
+                                <img className='w-2.5 opacity-70' src={assets.dropdown_icon} alt="" />
+                            </div>
+                            
+                            <div className='absolute right-0 mt-2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20'>
+                                <div className='bg-white rounded-lg shadow-lg overflow-hidden w-48 border border-gray-100'>
+                                    <div className='flex flex-col text-sm'>
+                                        <button 
+                                            onClick={() => navigate('/my-profile')} 
+                                            className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                            </svg>
+                                            My Profile
+                                        </button>
+                                        <button 
+                                            onClick={() => navigate('/my-appointments')} 
+                                            className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            My Appointments
+                                        </button>
+                                        <button 
+                                            onClick={logout} 
+                                            className='text-left px-4 py-3 hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2'
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                            </svg>
+                                            Logout
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <button 
+                            onClick={() => navigate('/login')} 
+                            className='hidden md:flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full font-medium text-sm transition-colors shadow-md hover:shadow-lg'
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            </svg>
+                            Create Account
+                        </button>
+                    )}
+                    
+                    {/* Mobile Menu Button */}
+                    <button 
+                        onClick={() => setShowMenu(true)} 
+                        className='ml-4 p-1 rounded-md hover:bg-gray-100 md:hidden focus:outline-none transition-colors'
+                    >
+                        <img className='w-6' src={assets.menu_icon} alt="Menu" />
+                    </button>
                 </div>
-                :<button onClick={()=>navigate('/login')} className='bg-primary text-white px-8 py-3 rounded-full font-light hidden md:block '>Create Account</button>
-            }
-            <img onClick={()=> setShowMenu(true)} className='w-6 md:hidden' src={assets.menu_icon} alt="" />
-            {/* ....Mobile Menu.... */}
-            <div className={`${showMenu ? 'fixed w-full' : 'h-0 w-0'} md:hidden right-0 top-0 bottom-0 z-20 overflow-hidden bg-white transition-all`}>
-                <div className='flex items-center justify-between px-5 py-6'>
-                    <img className='w-36' src={assets.logo} alt="" />
-                    <img className='w-7' onClick={()=> setShowMenu(false)} src={assets.cross_icon} alt="" />
+            </div>
+
+            {/* Mobile Menu Overlay */}
+            <div className={`${showMenu ? 'fixed inset-0 bg-black bg-opacity-30 z-10' : 'hidden'} md:hidden`} onClick={() => setShowMenu(false)}></div>
+            
+            {/* Mobile Menu */}
+            <div className={`fixed top-0 right-0 w-64 h-full bg-white shadow-xl z-20 transform ${showMenu ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out md:hidden`}>
+                <div className='flex items-center justify-between p-4 border-b'>
+                    <img className='w-32' src={assets.logo} alt="Logo" />
+                    <button 
+                        onClick={() => setShowMenu(false)} 
+                        className='p-1 rounded-full hover:bg-gray-100'
+                    >
+                        <img className='w-6' src={assets.cross_icon} alt="Close" />
+                    </button>
                 </div>
-                <ul className='flex flex-col items-center gap-2 mt-5 px-5 text-lg font-medium'>
-                <NavLink  onClick={()=> setShowMenu(false)} to='/'><p className='px-4 py-2 rounded inline-block'>HOME</p></NavLink>
-                <NavLink  onClick={()=> setShowMenu(false)} to='/doctors'><p className='px-4 py-2 rounded inline-block'>ALL DOCTORS</p></NavLink>
-                <NavLink  onClick={()=> setShowMenu(false)} to='/about'><p className='px-4 py-2 rounded inline-block'>ABOUT</p></NavLink>
-                <NavLink  onClick={()=> setShowMenu(false)} to='/contact'><p className='px-4 py-2 rounded inline-block'>CONTACT</p></NavLink>
-                </ul>
+                
+                <div className='p-4'>
+                    <NavLink 
+                        to='/' 
+                        onClick={() => setShowMenu(false)} 
+                        className={({isActive}) => 
+                            `block w-full text-left px-3 py-3 rounded-md mb-1 ${isActive ? 'text-indigo-700 border-l-4 border-indigo-500 pl-2' : 'text-gray-700 hover:bg-gray-50'}`
+                        }
+                    >
+                        HOME
+                    </NavLink>
+                    <NavLink 
+                        to='/doctors' 
+                        onClick={() => setShowMenu(false)} 
+                        className={({isActive}) => 
+                            `block w-full text-left px-3 py-3 rounded-md mb-1 ${isActive ? 'text-indigo-700 border-l-4 border-indigo-500 pl-2' : 'text-gray-700 hover:bg-gray-50'}`
+                        }
+                    >
+                        ALL DOCTORS
+                    </NavLink>
+                    <NavLink 
+                        to='/about' 
+                        onClick={() => setShowMenu(false)} 
+                        className={({isActive}) => 
+                            `block w-full text-left px-3 py-3 rounded-md mb-1 ${isActive ? 'text-indigo-700 border-l-4 border-indigo-500 pl-2' : 'text-gray-700 hover:bg-gray-50'}`
+                        }
+                    >
+                        ABOUT
+                    </NavLink>
+                    <NavLink 
+                        to='/contact' 
+                        onClick={() => setShowMenu(false)} 
+                        className={({isActive}) => 
+                            `block w-full text-left px-3 py-3 rounded-md mb-1 ${isActive ? 'text-indigo-700 border-l-4 border-indigo-500 pl-2' : 'text-gray-700 hover:bg-gray-50'}`
+                        }
+                    >
+                        CONTACT
+                    </NavLink>
+                    
+                    {!token && (
+                        <NavLink 
+                            to='/login' 
+                            onClick={() => setShowMenu(false)} 
+                            className='flex items-center justify-center gap-2 mt-4 bg-indigo-600 text-white px-4 py-3 rounded-md'
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                            </svg>
+                            CREATE ACCOUNT
+                        </NavLink>
+                    )}
+                </div>
             </div>
         </div>
-        
-    </div>
-  )
-}
+    );
+};
 
-export default Navbar
+export default Navbar;
