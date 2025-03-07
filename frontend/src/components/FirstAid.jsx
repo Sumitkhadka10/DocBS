@@ -29,51 +29,95 @@ const FirstAidGuide = () => {
   const [activeIndex, setActiveIndex] = useState(null);
 
   return (
-    <div className="max-w-5xl mx-auto p-4 bg-white rounded-xl shadow-lg">
-      <header className="text-center mb-8">
-        <div className="inline-flex items-center gap-3 mb-4"><FaFirstAid className="text-red-600 text-3xl" /><h1 className="text-3xl font-bold text-gray-800">First Aid Made Simple</h1></div>
-        <p className="text-gray-600">Easy-to-follow emergency instructions for everyone</p>
+    <div className="max-w-5xl mx-auto rounded-xl shadow-lg overflow-hidden">
+      <header className="bg-primary text-white p-6">
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="bg-white rounded-full p-2">
+            <FaFirstAid className="text-primary text-2xl" />
+          </div>
+          <h1 className="text-3xl font-bold">First Aid Made Simple</h1>
+        </div>
+        <p className="text-center opacity-90 font-light">Easy-to-follow emergency instructions for everyone</p>
       </header>
 
-      <div className="flex flex-wrap gap-2 mb-6 justify-center">
+      <div className="flex overflow-x-auto py-4 px-4 bg-primary bg-opacity-10 sticky top-0 z-10">
         {Object.keys(firstAidCategories).map(category => (
-          <button key={category} className={`px-4 py-2 rounded-full text-sm ${selectedCategory === category ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`} onClick={() => { setSelectedCategory(category); setActiveIndex(null); }}>
+          <button
+            key={category}
+            className={`whitespace-nowrap px-5 py-2 mx-1 rounded-md text-sm font-medium transition-all ${
+              selectedCategory === category 
+                ? 'bg-primary text-white shadow-md' 
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
+            }`}
+            onClick={() => {
+              setSelectedCategory(category);
+              setActiveIndex(null);
+            }}
+          >
             {category}
           </button>
         ))}
       </div>
 
-      <div className="space-y-3">
-        {firstAidCategories[selectedCategory].map((procedure, index) => (
-          <div key={index} className="border rounded-lg hover:shadow-md">
-            <button className="w-full flex items-center p-4 gap-4 text-left" onClick={() => setActiveIndex(activeIndex === index ? null : index)}>
-              <div className="p-2 rounded-lg bg-opacity-20" style={{ backgroundColor: `${procedure.icon.props.className.match(/text-(.*?)-/)[1]}20` }}>
-                {React.cloneElement(procedure.icon, { className: `${procedure.icon.props.className} text-2xl` })}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-800">{procedure.title}</h3>
-                {procedure.note && <p className="text-sm text-red-600 mt-1">{procedure.note}</p>}
-              </div>
-              <FaPlus className={`text-gray-500 transition-transform ${activeIndex === index ? 'rotate-45' : ''}`} />
-            </button>
-
-            {activeIndex === index && (
-              <div className="p-4 bg-gray-50 border-t">
-                <div className="space-y-3 pl-12">
-                  {procedure.steps.map((step, stepIndex) => (
-                    <div key={stepIndex} className="flex gap-2">
-                      <div className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">{stepIndex + 1}</div>
-                      <p className="text-gray-700">{step}</p>
-                    </div>
-                  ))}
+      <div className="p-6 space-y-4">
+        {firstAidCategories[selectedCategory].map((procedure, index) => {
+          const isActive = activeIndex === index;
+          
+          return (
+            <div 
+              key={index} 
+              className={`rounded-lg transition-all duration-200 border ${
+                isActive 
+                  ? 'border-primary shadow-md' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <button 
+                className="w-full flex items-center p-4 gap-4 text-left" 
+                onClick={() => setActiveIndex(isActive ? null : index)}
+              >
+                <div className="p-3 rounded-full bg-gray-50">
+                  {procedure.icon}
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-800">{procedure.title}</h3>
+                  {procedure.note && (
+                    <div className="mt-1">
+                      <span className="inline-block text-red-600 text-sm font-medium">
+                        ⚠️ {procedure.note}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className={`w-7 h-7 flex items-center justify-center rounded-full ${
+                  isActive 
+                    ? 'bg-primary text-white' 
+                    : 'bg-gray-50 text-gray-500'
+                }`}>
+                  <FaPlus className={`transition-transform ${isActive ? 'rotate-45' : ''}`} />
+                </div>
+              </button>
+
+              {isActive && (
+                <div className="p-4 border-t border-gray-200">
+                  <div className="space-y-3">
+                    {procedure.steps.map((step, stepIndex) => (
+                      <div key={stepIndex} className="flex items-start gap-3 p-2">
+                        <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+                          {stepIndex + 1}
+                        </div>
+                        <p className="text-gray-700 pt-0.5">{step}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
-      <footer className="mt-8 p-4 bg-red-50 rounded-lg text-center text-sm text-gray-600">
+      <footer className="mt-8 p-4 border-t border-gray-200 text-center text-sm text-gray-600">
         <p>❗ This is general advice. Always call emergency services first in serious situations.</p>
       </footer>
     </div>
