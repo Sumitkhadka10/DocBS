@@ -26,7 +26,6 @@ const MyAppointments = () => {
   const slotDateFormat = (slotDate) => {
     const dateArray = slotDate.split("_");
     return dateArray[0] + " " + months[Number(dateArray[1])]+ " " + dateArray[2];
-
   }
 
   const getUserAppointments = async () => {
@@ -65,46 +64,91 @@ const MyAppointments = () => {
       getUserAppointments();
     }
   }, [token]);
+  
   return (
-    <div>
-      <p className="pb-3 mt-12 font-medium text-zinc-700 border-b">
-        My Appointments
-      </p>
-      <div>
-        {appointments.map((item, index) => (
-          <div
-            className="grid grid-cols-[1fr_2fr] gap-4 sm:flex sm:gap-6 py-2 border-b"
-            key={index}
-          >
-            <div>
-              <img className="w-32 bg-indigo-50" src={item.docData.image} alt="" />
+    <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-xl shadow-sm">
+      <h2 className="text-2xl font-bold mb-6 text-blue-800 border-b-2 border-blue-300 pb-3 flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        My Appointments History
+      </h2>
+      
+      {appointments.length === 0 ? (
+        <div className="text-center py-10 text-gray-500">
+          No appointments found. Book your first appointment now!
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {appointments.map((item, index) => (
+            <div
+              key={index}
+              className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg ${item.cancelled ? 'border-l-4 border-red-400 opacity-75' : 'border-l-4 border-green-400'}`}
+            >
+              <div className="md:flex">
+                <div className="p-4 md:w-1/4 flex justify-center items-start">
+                  <div className="relative">
+                    <img 
+                      className="w-32 h-32 object-cover rounded-full border-4 border-blue-100" 
+                      src={item.docData.image} 
+                      alt={item.docData.name} 
+                    />
+                    {item.cancelled && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full border-4 border-blue-100">
+                        <span className="text-white font-bold text-xs transform rotate-12 px-2 py-1 bg-red-500 rounded">CANCELLED</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="p-4 md:w-2/4">
+                  <div className="uppercase tracking-wide text-sm text-blue-600 font-semibold">{item.docData.speciality}</div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">{item.docData.name}</h3>
+                  
+                  <div className="flex items-center mb-2 text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm">{item.docData.address.line1}</p>
+                      <p className="text-sm">{item.docData.address.line2}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-sm font-medium">{slotDateFormat(item.slotDate)}</span>
+                    <span className="mx-2 text-gray-400">|</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-sm font-medium">{item.slotTime}</span>
+                  </div>
+                </div>
+                
+                <div className="p-4 md:w-1/4 flex items-center justify-center border-t md:border-t-0 md:border-l border-gray-200">
+                  {!item.cancelled ? (
+                    <button 
+                      onClick={() => cancelAppointment(item._id)} 
+                      className="w-full py-2 px-4 bg-white border border-red-300 rounded-lg text-red-600 font-medium shadow-sm hover:bg-red-600 hover:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
+                    >
+                      Cancel Appointment
+                    </button>
+                  ) : (
+                    <div className="text-center">
+                      <div className="text-gray-500 text-sm mb-1">Appointment cancelled</div>
+                      <span className="inline-block px-3 py-1 bg-red-100 text-red-600 text-xs rounded-full">Contact support for assistance</span>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex-1 text-sm text-zinc-600">
-              <p className="font-bold text-neutral-800">{item.docData.name}</p>
-              <p>{item.docData.speciality}</p>
-              <p className="text-zinc-700 font-medium mt-1">Address :</p>
-              <p className="text-xs">{item.docData.address.line1}</p>
-              <p className="text-xs">{item.docData.address.line2}</p>
-              <p className="text-sm mt-1">
-                <span className="text-sm text-neutral-700 font-medium">
-                  Date & Time:{" "}
-                </span>
-               {slotDateFormat(item.slotDate)} | {item.slotTime}
-              </p>
-            </div>
-            <div></div>
-            <div className="flex flex-col gap-2 justify-end">
-              {!item.cancelled && <button className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-primary hover:text-white transition-all duration-300">
-                Pay Online
-              </button> }
-              {!item.cancelled && <button onClick={()=>cancelAppointment(item._id)} className="text-sm text-stone-500 text-center sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300 ">
-                Cancel Appointment
-              </button>  }
-              {item.cancelled && <button className="sm:min-w-48 py-2 border border-red-500 rounded text-red-500">Appointment Cancelled</button>}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );  
 };
