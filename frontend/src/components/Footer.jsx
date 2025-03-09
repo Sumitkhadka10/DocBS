@@ -92,7 +92,7 @@ const Footer = () => {
           
           {/* Copyright Text */}
           <p className="text-gray-500 text-sm text-center">
-            © 2025 Doctor Booking System - All Rights Reserved.
+            CopyRight © 2025 Doctor Booking System - All Rights Reserved.
           </p>
 
           {/* Social Media Links */}

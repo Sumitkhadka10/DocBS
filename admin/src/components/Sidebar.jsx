@@ -6,21 +6,21 @@ import { assets } from '../assets/assets';
 const Sidebar = () => {
     const { aToken } = useContext(AdminContext);
     const [collapsed, setCollapsed] = useState(false);
-    
+
     // Define fixed styles to ensure consistency
     const navItemStyle = "flex items-center w-full px-6 py-3 text-base font-medium rounded-md transition-all duration-200";
     const activeStyle = "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md";
     const inactiveStyle = "text-gray-700 hover:bg-blue-50";
-    
+
     // Toggle sidebar collapse for mobile responsiveness
     const toggleSidebar = () => {
         setCollapsed(!collapsed);
     };
-    
+
     return (
         <>
             {/* Mobile toggle button - visible only on small screens */}
-            <button 
+            <button
                 className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md"
                 onClick={toggleSidebar}
             >
@@ -35,7 +35,7 @@ const Sidebar = () => {
                     </svg>
                 )}
             </button>
-            
+
             <div className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 shadow-lg transition-all duration-300 z-40
                 ${collapsed ? '-translate-x-full' : 'translate-x-0'} 
                 lg:translate-x-0 lg:static lg:w-64`}
@@ -52,14 +52,14 @@ const Sidebar = () => {
                                     <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">Admin Portal</h1>
                                 </div>
                             </div>
-                            
+
                             {/* Main Navigation */}
                             <div className="flex-1 py-6 px-4 overflow-y-auto">
                                 <div className="space-y-2">
-                                    <NavLink 
-                                        className={({isActive}) => 
+                                    <NavLink
+                                        className={({ isActive }) =>
                                             `${navItemStyle} ${isActive ? activeStyle : inactiveStyle}`
-                                        } 
+                                        }
                                         to={'/admin-dashboard'}
                                         onClick={() => window.innerWidth < 1024 && setCollapsed(true)}
                                     >
@@ -72,10 +72,10 @@ const Sidebar = () => {
                                         <span className="leading-none">Dashboard</span>
                                     </NavLink>
 
-                                    <NavLink 
-                                        className={({isActive}) => 
+                                    <NavLink
+                                        className={({ isActive }) =>
                                             `${navItemStyle} ${isActive ? activeStyle : inactiveStyle}`
-                                        } 
+                                        }
                                         to={'/all-appointments'}
                                         onClick={() => window.innerWidth < 1024 && setCollapsed(true)}
                                     >
@@ -93,10 +93,10 @@ const Sidebar = () => {
                                         <h2 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Doctor Management</h2>
                                     </div>
 
-                                    <NavLink 
-                                        className={({isActive}) => 
+                                    <NavLink
+                                        className={({ isActive }) =>
                                             `${navItemStyle} ${isActive ? activeStyle : inactiveStyle}`
-                                        } 
+                                        }
                                         to={'/add-doctor'}
                                         onClick={() => window.innerWidth < 1024 && setCollapsed(true)}
                                     >
@@ -109,10 +109,10 @@ const Sidebar = () => {
                                         <span className="leading-none">Add Doctor</span>
                                     </NavLink>
 
-                                    <NavLink 
-                                        className={({isActive}) => 
+                                    <NavLink
+                                        className={({ isActive }) =>
                                             `${navItemStyle} ${isActive ? activeStyle : inactiveStyle}`
-                                        } 
+                                        }
                                         to={'/doctor-list'}
                                         onClick={() => window.innerWidth < 1024 && setCollapsed(true)}
                                     >
@@ -126,7 +126,7 @@ const Sidebar = () => {
                                     </NavLink>
                                 </div>
                             </div>
-                            
+
                             {/* User profile section at bottom */}
                             <div className="border-t border-gray-200 p-4">
                                 <div className="flex items-center space-x-3">
@@ -138,7 +138,7 @@ const Sidebar = () => {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-gray-800">Admin User</p>
-                                        <p className="text-xs text-gray-500">admin@example.com</p>
+                                        <p className="text-xs text-gray-500">admin@doctorbooking.com</p>
                                     </div>
                                 </div>
                             </div>
@@ -146,10 +146,10 @@ const Sidebar = () => {
                     )
                 }
             </div>
-            
+
             {/* Overlay for mobile - closes sidebar when clicking outside */}
             {!collapsed && (
-                <div 
+                <div
                     className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
                     onClick={toggleSidebar}
                 ></div>
