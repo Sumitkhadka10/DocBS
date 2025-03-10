@@ -5,6 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 import userModel from "../models/userModel.js";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
+import reportCardModel from "../models/ReportCard.js";
 
 // API to register user
 const registerUser = async (req, res) => {
@@ -217,6 +218,75 @@ const cancelAppointment = async (req, res) => {
     
   }
 }
+// API to save report card
+const saveReportCard = async (req, res) => {
+  try {
+    const { userId, date, doctorName, appointmentTime, content, page } = req.body;
+
+    if (!date || !doctorName || !appointmentTime || !content || !page) {
+      return res.json({ success: false, message: "All fields are required" });
+    }
+
+    // Check if a report card already exists for this page and user
+    const existingReport = await reportCardModel.findOne({ userId, page });
+    if (existingReport) {
+      return res.json({ success: false, message: "Report card already exists for this page. Use edit instead." });
+    }
+
+    const reportCard = new reportCardModel({
+      userId,
+      date,
+      doctorName,
+      appointmentTime,
+      content,
+      page,
+    });
+
+    await reportCard.save();
+    res.json({ success: true, message: "Report card saved successfully" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// API to update report card
+const updateReportCard = async (req, res) => {
+  try {
+    const { userId, date, doctorName, appointmentTime, content, page } = req.body;
+
+    if (!date || !doctorName || !appointmentTime || !content || !page) {
+      return res.json({ success: false, message: "All fields are required" });
+    }
+
+    const reportCard = await reportCardModel.findOneAndUpdate(
+      { userId, page },
+      { date, doctorName, appointmentTime, content },
+      { new: true, upsert: false } // Don't create if it doesn't exist
+    );
+
+    if (!reportCard) {
+      return res.json({ success: false, message: "Report card not found for this page" });
+    }
+
+    res.json({ success: true, message: "Report card updated successfully", reportCard });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// API to get all report cards for a user
+const getReportCards = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const reportCards = await reportCardModel.find({ userId }).sort({ page: 1 });
+    res.json({ success: true, reportCards });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
 
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment };
+export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, saveReportCard, getReportCards, updateReportCard };
