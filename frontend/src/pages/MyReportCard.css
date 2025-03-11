@@ -1,0 +1,54 @@
+/* MyReportCard.css */
+.pdf-content {
+    font-family: "Roboto", "Helvetica", sans-serif;
+    color: #1a202c;
+  }
+  
+  .pdf-header h1 {
+    font-family: "Montserrat", "Arial", sans-serif;
+    font-size: 24pt;
+    font-weight: 600;
+  }
+  
+  .pdf-content h2 {
+    font-family: "Montserrat", "Arial", sans-serif;
+    font-size: 14pt;
+    font-weight: 600;
+    margin-bottom: 8pt;
+  }
+  
+  .pdf-content div {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+  
+  .pdf-footer {
+    position: absolute;
+    bottom: 10mm;
+    left: 0;
+    right: 0;
+    font-size: 10pt;
+    color: #4a5568;
+  }
+  
+  @media print {
+    .pdf-content {
+      background: none !important;
+      print-color-adjust: exact; /* Standard property for cross-browser support */
+      -webkit-print-color-adjust: exact; /* WebKit-specific property (Chrome, Safari) */
+    }
+    .no-print {
+      display: none !important;
+    }
+    .pdf-footer {
+      position: fixed;
+      bottom: 10mm;
+    }
+    .pdf-content .border {
+      border: 1px solid #e2e8f0 !important;
+    }
+    .pdf-content .bg-gray-50 {
+      background: #f7fafc !important;
+    }
+  }
+  
