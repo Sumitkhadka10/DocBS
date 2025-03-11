@@ -4,6 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 import doctorModel from "../models/doctorModel.js";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
+import userModel from "../models/userModel.js";
 
 // API for adding doctor
 const addDoctor = async (req, res) => {
@@ -169,6 +170,16 @@ const appointmentCancel = async (req, res) => {
     
   }
 }
+// API to get all registered users (for admin only)
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await userModel.find({}).select("-password");
+    res.json({ success: true, users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 
-export { addDoctor, loginAdmin, allDoctors, appointmentsAdmin, appointmentCancel };
+export { addDoctor, loginAdmin, allDoctors, appointmentsAdmin, appointmentCancel, getAllUsers };
