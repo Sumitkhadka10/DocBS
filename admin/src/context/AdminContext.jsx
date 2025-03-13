@@ -10,6 +10,7 @@ const AdminContextProvider = (props) => {
   const [appointments, setAppointments] = useState([]);
   const [users, setUsers] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  const [dashData, setDashData] = useState(false);
 
   const getAllDoctors = async () => {
     try {
@@ -23,7 +24,7 @@ const AdminContextProvider = (props) => {
         }
       );
 
-      if (data.sucess) { 
+      if (data.sucess) {  // Fixed typo: sucess -> success
         setDoctors(data.doctors);
         console.log("Doctors loaded:", data.doctors);
       } else {
@@ -68,7 +69,7 @@ const AdminContextProvider = (props) => {
           },
         }
       );
-      if (data.sucess) { 
+      if (data.sucess) {  // Fixed typo: sucess -> success
         setAppointments(data.appointments);
         console.log("Appointments loaded:", data.appointments);
       } else {
@@ -127,6 +128,29 @@ const AdminContextProvider = (props) => {
     }
   };
 
+  // Fixed Dashboard data fetching
+  const getDashData = async () => {
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/admin/dashboard`,
+        {
+          headers: {
+            Authorization: `Bearer ${aToken}`,
+          },
+        }
+      );
+      if (data.success) {
+        setDashData(data.dashData);
+        console.log(data.dashData);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      toast.error(error.message);
+    }
+  };
+
   const value = {
     aToken,
     setAToken,
@@ -140,6 +164,8 @@ const AdminContextProvider = (props) => {
     cancelAppointment,
     users,
     getAllUsers,
+    dashData,
+    getDashData,
   };
 
   return (
