@@ -12,13 +12,25 @@ const Dashboard = () => {
   const { aToken, getDashData, dashData, appointments, getAllAppointments, cancelAppointment } = useContext(AdminContext);
   const { slotDateFormat } = useContext(AppContext);
 
-  // Fetch data on mount or when aToken changes
+  // Fetch data only once on mount or when aToken changes
   useEffect(() => {
+    let isMounted = true;
+
     if (aToken) {
       Promise.all([getDashData(), getAllAppointments()])
-        .catch((error) => console.error("Error fetching data:", error));
+        .then(() => {
+          if (!isMounted) return;
+          console.log("Data fetched successfully");
+        })
+        .catch((error) => {
+          if (isMounted) console.error("Error fetching data:", error);
+        });
     }
-  }, [aToken, getDashData, getAllAppointments]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [aToken]);
 
   // Bar Chart Data with fallback
   const barChartData = {

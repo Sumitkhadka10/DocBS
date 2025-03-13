@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -11,6 +11,22 @@ const AdminContextProvider = (props) => {
   const [users, setUsers] = useState([]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
   const [dashData, setDashData] = useState(false);
+  const [lastErrorTime, setLastErrorTime] = useState({ dash: 0, appts: 0 });
+  const [lastActiveTime, setLastActiveTime] = useState(Date.now());
+
+  const ERROR_COOLDOWN = 1800000; // 30 minutes in milliseconds 
+
+  // Track tab visibility for inactivity
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        setLastActiveTime(Date.now());
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, []);
 
   const getAllDoctors = async () => {
     try {
@@ -23,16 +39,15 @@ const AdminContextProvider = (props) => {
           },
         }
       );
-
-      if (data.sucess) {  // Fixed typo: sucess -> success
+      if (data.sucess) { // Fixed typo: sucess -> success
         setDoctors(data.doctors);
         console.log("Doctors loaded:", data.doctors);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to fetch doctors");
       }
     } catch (error) {
       console.error("Error fetching doctors:", error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message || "Error fetching doctors");
     }
   };
 
@@ -48,14 +63,14 @@ const AdminContextProvider = (props) => {
         }
       );
       if (data.success) {
-        toast.success(data.message);
-        getAllDoctors(); // Refresh doctors list
+        toast.success(data.message || "Availability changed successfully");
+        await getAllDoctors(); // Refresh doctors list
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to change availability");
       }
     } catch (error) {
       console.error("Error changing availability:", error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message || "Error changing availability");
     }
   };
 
@@ -69,15 +84,22 @@ const AdminContextProvider = (props) => {
           },
         }
       );
-      if (data.sucess) {  // Fixed typo: sucess -> success
+      if (data.sucess) { // Fixed typo: sucess -> success
         setAppointments(data.appointments);
         console.log("Appointments loaded:", data.appointments);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to fetch appointments");
       }
     } catch (error) {
-      console.error("Error fetching appointments:", error);
-      toast.error(error.message);
+      const now = Date.now();
+      const inactiveTime = now - lastActiveTime;
+      if (inactiveTime > ERROR_COOLDOWN && now - lastErrorTime.appts > ERROR_COOLDOWN) {
+        console.error("Error fetching appointments:", error);
+        toast.error(`Network error after prolonged inactivity: ${error.response?.data?.message || error.message}`);
+        setLastErrorTime((prev) => ({ ...prev, appts: now }));
+      } else {
+        console.log("Suppressed toast for appointments due to short inactivity or recent error");
+      }
     }
   };
 
@@ -95,14 +117,14 @@ const AdminContextProvider = (props) => {
       );
       console.log("Cancel appointment response:", data);
       if (data.success) {
-        toast.success(data.message);
-        getAllAppointments(); // Refresh appointments list
+        toast.success(data.message || "Appointment cancelled successfully");
+        await getAllAppointments(); // Refresh appointments list
       } else {
         toast.error(data.message || "Failed to cancel appointment");
       }
     } catch (error) {
       console.error("Error canceling appointment:", error);
-      toast.error(error.response?.data?.message || error.message);
+      toast.error(error.response?.data?.message || error.message || "Error cancelling appointment");
     }
   };
 
@@ -120,15 +142,14 @@ const AdminContextProvider = (props) => {
         setUsers(data.users);
         console.log("Users loaded:", data.users);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to fetch users");
       }
     } catch (error) {
       console.error("Error fetching users:", error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message || "Error fetching users");
     }
   };
 
-  // Fixed Dashboard data fetching
   const getDashData = async () => {
     try {
       const { data } = await axios.get(
@@ -141,13 +162,20 @@ const AdminContextProvider = (props) => {
       );
       if (data.success) {
         setDashData(data.dashData);
-        console.log(data.dashData);
+        console.log("Dashboard data loaded:", data.dashData);
       } else {
-        toast.error(data.message);
+        toast.error(data.message || "Failed to fetch dashboard data");
       }
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      toast.error(error.message);
+      const now = Date.now();
+      const inactiveTime = now - lastActiveTime;
+      if (inactiveTime > ERROR_COOLDOWN && now - lastErrorTime.dash > ERROR_COOLDOWN) {
+        console.error("Error fetching dashboard data:", error);
+        toast.error(`Network error after prolonged inactivity: ${error.response?.data?.message || error.message}`);
+        setLastErrorTime((prev) => ({ ...prev, dash: now }));
+      } else {
+        console.log("Suppressed toast for dashboard due to short inactivity or recent error");
+      }
     }
   };
 
