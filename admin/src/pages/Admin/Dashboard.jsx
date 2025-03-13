@@ -62,16 +62,16 @@ const Dashboard = () => {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { 
+      legend: {
         position: 'top',
-        labels: { 
-          font: { size: 12, family: "'Poppins', sans-serif" }, 
-          padding: 10, 
+        labels: {
+          font: { size: 12, family: "'Poppins', sans-serif" },
+          padding: 10,
           usePointStyle: true,
           pointStyleWidth: 8
         }
       },
-      tooltip: { 
+      tooltip: {
         backgroundColor: 'rgba(17, 24, 39, 0.8)',
         bodyFont: { size: 12, family: "'Poppins', sans-serif" },
         padding: 10,
@@ -80,12 +80,12 @@ const Dashboard = () => {
       }
     },
     scales: {
-      y: { 
-        beginAtZero: true, 
+      y: {
+        beginAtZero: true,
         grid: { color: 'rgba(226, 232, 240, 0.4)' },
         ticks: { font: { family: "'Poppins', sans-serif" } }
       },
-      x: { 
+      x: {
         grid: { display: false },
         ticks: { font: { family: "'Poppins', sans-serif" } }
       }
@@ -98,9 +98,14 @@ const Dashboard = () => {
       <div className="rounded-2xl shadow-md p-6 mb-6 border border-purple-100">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">Admin <span className="text-purple-600">Dashboard</span></h1>
-            <p className="text-sm text-gray-500 mt-1">Real-time system overview and analytics</p>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+              Admin <span className="text-purple-600">Dashboard</span>
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Empowered control at your fingertips — manage users, doctors, and appointments with ease.
+            </p>
           </div>
+
           <div className="text-xs font-medium flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -117,7 +122,7 @@ const Dashboard = () => {
           { icon: assets.appointment_icon, title: 'Appointments', value: dashData?.appointments || 0, color: 'from-indigo-400 to-indigo-600' },
           { icon: assets.patients_icon, title: 'Patients', value: dashData?.patients || 0, color: 'from-pink-400 to-pink-600' },
         ].map((stat, index) => (
-          <div 
+          <div
             key={index}
             className="rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300"
           >
@@ -158,7 +163,7 @@ const Dashboard = () => {
             <Bar data={barChartData} options={chartOptions} />
           </div>
         </div>
-        
+
         {/* Pie Chart Section */}
         <div className="col-span-12 md:col-span-3 rounded-2xl shadow-md p-5 border border-purple-50">
           <h2 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-purple-100 flex items-center">
