@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { AdminContext } from '../../context/AdminContext';
 import { AppContext } from '../../context/AppContext';
 import { assets } from '../../assets/assets';
@@ -9,35 +9,36 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, T
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
-  const { aToken, getDashData, cancelAppointment, dashData } = useContext(AdminContext);
+  const { aToken, getDashData, dashData, appointments, getAllAppointments, cancelAppointment } = useContext(AdminContext);
   const { slotDateFormat } = useContext(AppContext);
-  const [loading, setLoading] = useState(true);
 
+  // Fetch data on mount or when aToken changes
   useEffect(() => {
     if (aToken) {
-      setLoading(true);
-      getDashData().then(() => setLoading(false));
+      Promise.all([getDashData(), getAllAppointments()])
+        .catch((error) => console.error("Error fetching data:", error));
     }
-  }, [aToken]);
+  }, [aToken, getDashData, getAllAppointments]);
 
-  // Chart Data Configuration
+  // Bar Chart Data with fallback
   const barChartData = {
     labels: ['Doctors', 'Appointments', 'Patients'],
     datasets: [{
       label: 'Count',
-      data: dashData ? [dashData.doctors, dashData.appointments, dashData.patients] : [0, 0, 0],
+      data: dashData ? [dashData.doctors || 0, dashData.appointments || 0, dashData.patients || 0] : [0, 0, 0],
       backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899'],
       borderRadius: 12,
       barThickness: 40,
     }]
   };
 
+  // Pie Chart Data with fallback
   const pieChartData = {
     labels: ['Active', 'Cancelled'],
     datasets: [{
-      data: dashData ? [
-        dashData.appointments - dashData.latestAppointments.filter(a => a.cancelled).length,
-        dashData.latestAppointments.filter(a => a.cancelled).length
+      data: appointments ? [
+        appointments.filter(a => !a.cancelled).length,
+        appointments.filter(a => a.cancelled).length
       ] : [0, 0],
       backgroundColor: ['#10b981', '#f43f5e'],
       borderWidth: 0,
@@ -79,17 +80,6 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-purple-700 text-sm font-medium tracking-wider">LOADING DASHBOARD...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen p-6">
       {/* Header */}
@@ -111,9 +101,9 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-6 mb-6">
         {[
-          { icon: assets.doctor_icon, title: 'Doctors', value: dashData?.doctors, color: 'from-purple-400 to-purple-600' },
-          { icon: assets.appointment_icon, title: 'Appointments', value: dashData?.appointments, color: 'from-indigo-400 to-indigo-600' },
-          { icon: assets.patients_icon, title: 'Patients', value: dashData?.patients, color: 'from-pink-400 to-pink-600' },
+          { icon: assets.doctor_icon, title: 'Doctors', value: dashData?.doctors || 0, color: 'from-purple-400 to-purple-600' },
+          { icon: assets.appointment_icon, title: 'Appointments', value: dashData?.appointments || 0, color: 'from-indigo-400 to-indigo-600' },
+          { icon: assets.patients_icon, title: 'Patients', value: dashData?.patients || 0, color: 'from-pink-400 to-pink-600' },
         ].map((stat, index) => (
           <div 
             key={index}
@@ -127,7 +117,7 @@ const Dashboard = () => {
                     <img className="w-8 h-8 invert" src={stat.icon} alt={stat.title} />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">{stat.value || 0}</p>
+                    <p className="text-2xl font-bold">{stat.value}</p>
                     <p className="text-xs text-gray-500 font-medium uppercase tracking-wider">{stat.title}</p>
                   </div>
                 </div>
@@ -144,7 +134,7 @@ const Dashboard = () => {
 
       {/* Layout Grid */}
       <div className="grid grid-cols-12 gap-6">
-        {/* Charts Section */}
+        {/* Bar Chart Section */}
         <div className="col-span-12 md:col-span-5 rounded-2xl shadow-md p-5 border border-purple-50">
           <h2 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-purple-100 flex items-center">
             <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,6 +147,7 @@ const Dashboard = () => {
           </div>
         </div>
         
+        {/* Pie Chart Section */}
         <div className="col-span-12 md:col-span-3 rounded-2xl shadow-md p-5 border border-purple-50">
           <h2 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-purple-100 flex items-center">
             <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,61 +169,62 @@ const Dashboard = () => {
               <h2 className="text-lg font-bold text-gray-800">Latest Appointments</h2>
             </div>
             <span className="text-xs text-white font-medium bg-gradient-to-r from-purple-500 to-indigo-500 px-3 py-1 rounded-full shadow-sm">
-              {dashData?.latestAppointments.length || 0} bookings
+              {dashData?.latestAppointments?.length || 0} bookings
             </span>
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
-            {dashData?.latestAppointments.map((item, index) => (
-              <div
-                key={index}
-                className="p-4 hover:bg-purple-50 transition-colors border-b border-purple-100 last:border-b-0"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="relative flex-shrink-0">
-                      <img
-                        className="w-12 h-12 rounded-xl object-cover border-2 border-purple-100 shadow-sm"
-                        src={item.docData.image}
-                        alt={item.docData.name}
-                      />
-                      <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${item.cancelled ? 'bg-red-500' : 'bg-green-500'}`}></span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-800 truncate">{item.docData.name}</p>
-                      <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-                        <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {slotDateFormat(item.slotDate)} • {item.slotTime}
+            {dashData?.latestAppointments && dashData.latestAppointments.length > 0 ? (
+              dashData.latestAppointments.map((item, index) => (
+                <div
+                  key={index}
+                  className="p-4 hover:bg-purple-50 transition-colors border-b border-purple-100 last:border-b-0"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="relative flex-shrink-0">
+                        <img
+                          className="w-12 h-12 rounded-xl object-cover border-2 border-purple-100 shadow-sm"
+                          src={item.docData.image}
+                          alt={item.docData.name}
+                        />
+                        <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${item.cancelled ? 'bg-red-500' : 'bg-green-500'}`}></span>
                       </div>
-                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                        <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        Patient: {item.userData?.name || 'Unknown'}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-800 truncate">{item.docData.name}</p>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                          <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {slotDateFormat(item.slotDate)} • {item.slotTime}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          Patient: {item.userData?.name || 'Unknown'}
+                        </p>
+                      </div>
                     </div>
+                    {item.cancelled ? (
+                      <span className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-full flex items-center gap-1 whitespace-nowrap shadow-sm">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancelled
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => cancelAppointment(item._id)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-red-500 to-pink-500 rounded-full hover:from-red-600 hover:to-pink-600 transition-colors shadow-sm whitespace-nowrap"
+                      >
+                        <img className="w-3.5 h-3.5 invert" src={assets.cancel_icon} alt="Cancel" />
+                        Cancel
+                      </button>
+                    )}
                   </div>
-                  {item.cancelled ? (
-                    <span className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-full flex items-center gap-1 whitespace-nowrap shadow-sm">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Cancelled
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => cancelAppointment(item._id)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-red-500 to-pink-500 rounded-full hover:from-red-600 hover:to-pink-600 transition-colors shadow-sm whitespace-nowrap"
-                    >
-                      <img className="w-3.5 h-3.5 invert" src={assets.cancel_icon} alt="Cancel" />
-                      Cancel
-                    </button>
-                  )}
                 </div>
-              </div>
-            ))}
-            {(!dashData?.latestAppointments || dashData.latestAppointments.length === 0) && (
+              ))
+            ) : (
               <div className="py-10 text-center">
                 <svg className="w-10 h-10 mx-auto text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
