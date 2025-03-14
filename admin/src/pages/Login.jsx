@@ -4,6 +4,7 @@ import { AdminContext } from '../context/AdminContext';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom'; // Added useNavigate
+import { DoctorContext } from '../context/DoctorContext';
 
 const Login = () => {
   const [state, setState] = useState('Admin');
@@ -11,6 +12,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
 
   const { setAToken, backendUrl } = useContext(AdminContext);  
+  const { setDToken } = useContext(DoctorContext)
   const navigate = useNavigate(); // Initialize navigate
 
   const onSubmitHandler = async (event) => {
@@ -28,9 +30,18 @@ const Login = () => {
         } else {
           toast.error(data.message);
         }
-      } else {
-        // Doctor login (implement if needed)
-        toast.info('Doctor login not implemented yet');
+      } else { //Doctor login
+        const { data } = await axios.post(backendUrl + '/api/doctor/login', { email, password});
+        if (data.success) {
+          localStorage.setItem('dToken', data.token);
+          setDToken(data.token);
+          console.log(data.token);
+          
+        } else {
+          toast.error(data.message);
+        }
+
+
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Invalid Credentials!');

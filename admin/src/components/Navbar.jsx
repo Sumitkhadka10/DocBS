@@ -53,22 +53,22 @@ const Navbar = () => {
 
                     {/* Enhanced Role badge with improved glow effect */}
                     <div className='relative hidden sm:block'>
-                        <div className={`
-                            relative z-10 py-1.5 px-4 rounded-full font-medium text-sm tracking-wide
-                            ${aToken
-                                ? 'bg-gradient-to-r from-blue-700 to-indigo-600 text-white'
-                                : 'bg-gradient-to-r from-emerald-700 to-emerald-600 text-white'
-                            }
-                            shadow-md border border-white/20
-                        `}>
-                            {aToken ? 'Admin' : 'Doctor'}
-                        </div>
-                        <div className={`
-                            absolute inset-0 rounded-full blur opacity-30
-                            ${aToken ? 'bg-blue-400' : 'bg-emerald-400'}
-                            animate-pulse
-                        `}></div>
+                        {aToken && (
+                            <>
+                                <div className={`
+                relative z-10 py-1.5 px-4 rounded-full font-medium text-sm tracking-wide
+                bg-gradient-to-r from-blue-700 to-indigo-600 text-white
+                shadow-md border border-white/20
+            `}>
+                                    Admin
+                                </div>
+                                <div className="
+                absolute inset-0 rounded-full blur opacity-30 bg-blue-400 animate-pulse
+            "></div>
+                            </>
+                        )}
                     </div>
+
                 </div>
 
                 {/* Right section with logout dropdown only - enhanced */}
