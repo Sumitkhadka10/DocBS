@@ -5,32 +5,23 @@ import { toast } from "react-toastify";
 
 const MyAppointments = () => {
   const { backendUrl, token, getDoctorsData } = useContext(AppContext);
-
   const [appointments, setAppointments] = useState([]);
+  
   const months = [
-    "",
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
 
   const slotDateFormat = (slotDate) => {
     const dateArray = slotDate.split("_");
-    return dateArray[0] + " " + months[Number(dateArray[1])]+ " " + dateArray[2];
-  }
+    return dateArray[0] + " " + months[Number(dateArray[1])] + " " + dateArray[2];
+  };
 
   const getUserAppointments = async () => {
     try {
-      const { data } = await axios.get(backendUrl + "/api/user/appointments", {headers: { token }});
+      const { data } = await axios.get(backendUrl + "/api/user/appointments", {
+        headers: { token }
+      });
       if (data.success) {
         setAppointments(data.appointments.reverse());
         console.log(data.appointments);
@@ -43,26 +34,30 @@ const MyAppointments = () => {
 
   const cancelAppointment = async (appointmentId) => {
     try {
-      const {data} = await axios.post(backendUrl + "/api/user/cancel-appointment", {appointmentId}, {headers: {token}});
+      const { data } = await axios.post(
+        backendUrl + "/api/user/cancel-appointment",
+        { appointmentId },
+        { headers: { token } }
+      );
       if (data.success) {
         toast.success(data.message);
         getUserAppointments();
         getDoctorsData();
       } else {
-        toast.error(data.message);}
-
+        toast.error(data.message);
+      }
     } catch (error) {
       console.log(error);
       toast.error(error.message);
     }
-  }
+  };
 
   useEffect(() => {
     if (token) {
       getUserAppointments();
     }
   }, [token]);
-  
+
   return (
     <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-xl shadow-sm">
       <h2 className="text-2xl font-bold mb-6 text-blue-800 border-b-2 border-blue-300 pb-3 flex items-center">
@@ -79,10 +74,12 @@ const MyAppointments = () => {
       ) : (
         <div className="space-y-6">
           {appointments.map((item, index) => {
-            // Determine border color based on appointment status
+            // Determine border color and status based on appointment state
             let borderColor = "border-blue-400";
             let statusBadge = null;
-            
+            let statusText = "Active";
+            let statusColor = "bg-blue-100 text-blue-600";
+
             if (item.cancelled) {
               borderColor = "border-red-400";
               statusBadge = (
@@ -90,6 +87,8 @@ const MyAppointments = () => {
                   Cancelled
                 </span>
               );
+              statusText = "Cancelled";
+              statusColor = "bg-red-100 text-red-600";
             } else if (item.isCompleted) {
               borderColor = "border-green-400";
               statusBadge = (
@@ -97,8 +96,10 @@ const MyAppointments = () => {
                   Completed
                 </span>
               );
+              statusText = "Completed";
+              statusColor = "bg-green-100 text-green-600";
             }
-            
+
             return (
               <div
                 key={index}
@@ -158,22 +159,16 @@ const MyAppointments = () => {
                   </div>
                   
                   <div className="p-4 md:w-1/4 flex items-center justify-center border-t md:border-t-0 md:border-l border-gray-200">
-                    {!item.cancelled && !item.isCompleted && (
+                    {!item.cancelled && !item.isCompleted ? (
                       <button 
                         onClick={() => cancelAppointment(item._id)} 
                         className="w-full py-2 px-4 bg-white border border-red-300 rounded-lg text-red-600 font-medium shadow-sm hover:bg-red-600 hover:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
                       >
                         Cancel Appointment
                       </button>
-                    )}
-                    {item.cancelled && !item.isCompleted && (
-                      <div className="w-full py-2 px-4 bg-red-50 border border-red-300 rounded-lg text-red-600 font-medium text-center">
-                        Appointment Cancelled
-                      </div>
-                    )}
-                    {item.isCompleted && (
-                      <div className="w-full py-2 px-4 bg-green-50 border border-green-300 rounded-lg text-green-600 font-medium text-center">
-                        Completed
+                    ) : (
+                      <div className={`w-full py-2 px-4 ${statusColor} border rounded-lg font-medium text-center`}>
+                        {statusText}
                       </div>
                     )}
                   </div>
