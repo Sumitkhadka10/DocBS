@@ -5,14 +5,12 @@ import { assets } from '../../assets/assets';
 import { Bar, Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js';
 
-// Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
 
 const Dashboard = () => {
   const { aToken, getDashData, dashData, appointments, getAllAppointments, cancelAppointment } = useContext(AdminContext);
   const { slotDateFormat } = useContext(AppContext);
 
-  // Fetch data only once on mount or when aToken changes
   useEffect(() => {
     let isMounted = true;
 
@@ -32,7 +30,6 @@ const Dashboard = () => {
     };
   }, [aToken]);
 
-  // Bar Chart Data with fallback
   const barChartData = {
     labels: ['Doctors', 'Appointments', 'Patients'],
     datasets: [{
@@ -44,15 +41,15 @@ const Dashboard = () => {
     }]
   };
 
-  // Pie Chart Data with fallback
   const pieChartData = {
-    labels: ['Active', 'Cancelled'],
+    labels: ['Active', 'Completed', 'Cancelled'],
     datasets: [{
       data: appointments ? [
-        appointments.filter(a => !a.cancelled).length,
+        appointments.filter(a => !a.cancelled && !a.isCompleted).length,
+        appointments.filter(a => a.isCompleted).length,
         appointments.filter(a => a.cancelled).length
-      ] : [0, 0],
-      backgroundColor: ['#10b981', '#f43f5e'],
+      ] : [0, 0, 0],
+      backgroundColor: ['#10b981', '#3b82f6', '#f43f5e'],
       borderWidth: 0,
       hoverOffset: 12,
     }]
@@ -94,7 +91,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen p-6">
-      {/* Header */}
       <div className="rounded-2xl shadow-md p-6 mb-6 border border-purple-100">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -105,7 +101,6 @@ const Dashboard = () => {
               Empowered control at your fingertips — manage users, doctors, and appointments with ease.
             </p>
           </div>
-
           <div className="text-xs font-medium flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full shadow-sm">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -115,17 +110,14 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-4 gap-6 mb-6">
         {[
-          { icon: assets.doctor_icon, title: 'Doctors', value: dashData?.doctors || 0, color: 'from-purple-400 to-purple-600' },
-          { icon: assets.appointment_icon, title: 'Appointments', value: dashData?.appointments || 0, color: 'from-indigo-400 to-indigo-600' },
-          { icon: assets.patients_icon, title: 'Patients', value: dashData?.patients || 0, color: 'from-pink-400 to-pink-600' },
+          { icon: assets.doctor_icon, title: 'All Doctors', value: dashData?.doctors || 0, color: 'from-purple-400 to-purple-600' },
+          { icon: assets.appointment_icon, title: 'Total Appointments', value: dashData?.appointments || 0, color: 'from-indigo-400 to-indigo-600' },
+          { icon: assets.patients_icon, title: 'All Patients', value: dashData?.patients || 0, color: 'from-pink-400 to-pink-600' },
+          { icon: assets.tick_icon, title: 'Appointments Completed', value: appointments?.filter(a => a.isCompleted).length || 0, color: 'from-blue-400 to-blue-600' },
         ].map((stat, index) => (
-          <div
-            key={index}
-            className="rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300"
-          >
+          <div key={index} className="rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-all duration-300">
             <div className={`bg-gradient-to-r ${stat.color} p-1`}></div>
             <div className="p-5">
               <div className="flex items-center justify-between">
@@ -149,9 +141,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Layout Grid */}
       <div className="grid grid-cols-12 gap-6">
-        {/* Bar Chart Section */}
         <div className="col-span-12 md:col-span-5 rounded-2xl shadow-md p-5 border border-purple-50">
           <h2 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-purple-100 flex items-center">
             <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,7 +154,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Pie Chart Section */}
         <div className="col-span-12 md:col-span-3 rounded-2xl shadow-md p-5 border border-purple-50">
           <h2 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-purple-100 flex items-center">
             <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +167,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Latest Appointments */}
         <div className="col-span-12 md:col-span-4 rounded-2xl shadow-md overflow-hidden border border-purple-50">
           <div className="flex items-center justify-between p-5 border-b border-purple-100 bg-gradient-to-r from-purple-50 to-indigo-50">
             <div className="flex items-center gap-2">
@@ -192,19 +180,12 @@ const Dashboard = () => {
           <div className="max-h-[60vh] overflow-y-auto">
             {dashData?.latestAppointments && dashData.latestAppointments.length > 0 ? (
               dashData.latestAppointments.map((item, index) => (
-                <div
-                  key={index}
-                  className="p-4 hover:bg-purple-50 transition-colors border-b border-purple-100 last:border-b-0"
-                >
+                <div key={index} className="p-4 hover:bg-purple-50 transition-colors border-b border-purple-100 last:border-b-0">
                   <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4 flex-1">
                       <div className="relative flex-shrink-0">
-                        <img
-                          className="w-12 h-12 rounded-xl object-cover border-2 border-purple-100 shadow-sm"
-                          src={item.docData.image}
-                          alt={item.docData.name}
-                        />
-                        <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${item.cancelled ? 'bg-red-500' : 'bg-green-500'}`}></span>
+                        <img className="w-12 h-12 rounded-xl object-cover border-2 border-purple-100 shadow-sm" src={item.docData.image} alt={item.docData.name} />
+                        <span className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${item.cancelled ? 'bg-red-500' : item.isCompleted ? 'bg-blue-500' : 'bg-green-500'}`}></span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-gray-800 truncate">{item.docData.name}</p>
@@ -228,6 +209,13 @@ const Dashboard = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                         Cancelled
+                      </span>
+                    ) : item.isCompleted ? (
+                      <span className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-full flex items-center gap-1 whitespace-nowrap shadow-sm">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Completed
                       </span>
                     ) : (
                       <button
