@@ -20,6 +20,7 @@ const AllAppointments = () => {
     if (activeTab === 'all') return true;
     if (activeTab === 'active') return !item.cancelled && !item.isCompleted;
     if (activeTab === 'cancelled') return item.cancelled;
+    if (activeTab === 'completed') return item.isCompleted;
     return true;
   }) : [];
 
@@ -123,6 +124,14 @@ const AllAppointments = () => {
             onClick={() => setActiveTab('cancelled')}
           >
             Cancelled
+          </button>
+          <button 
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === 'completed' 
+              ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md' 
+              : 'bg-white text-gray-600 hover:bg-gray-100'}`}
+            onClick={() => setActiveTab('completed')}
+          >
+            Completed
           </button>
         </div>
       </div>
@@ -248,14 +257,18 @@ const AllAppointments = () => {
                   ? 'No appointments found' 
                   : activeTab === 'active' 
                     ? 'No active appointments' 
-                    : 'No cancelled appointments'}
+                    : activeTab === 'cancelled' 
+                      ? 'No cancelled appointments'
+                      : 'No completed appointments'}
               </p>
               <p className="text-sm text-gray-500 mt-2">
                 {activeTab === 'all' 
                   ? 'Scheduled appointments will appear here' 
                   : activeTab === 'active' 
                     ? 'Active appointments will appear here' 
-                    : 'Cancelled appointments will appear here'}
+                    : activeTab === 'cancelled'
+                      ? 'Cancelled appointments will appear here'
+                      : 'Completed appointments will appear here'}
               </p>
             </div>
           )}
