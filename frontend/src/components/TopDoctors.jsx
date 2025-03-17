@@ -9,7 +9,6 @@ const TopDoctors = () => {
   return (
     <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        
         {/* Section Header */}
         <div className="text-center mb-14">
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight sm:text-4xl">
@@ -49,9 +48,13 @@ const TopDoctors = () => {
                 {/* Doctor Details */}
                 <div className="p-4 space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                    <span className="text-sm font-medium text-emerald-600">
-                      Available Now
+                    <span className={`w-2 h-2 rounded-full animate-pulse ${
+                      doctor.available ? 'bg-emerald-500' : 'bg-red-500'
+                    }`}></span>
+                    <span className={`text-sm font-medium ${
+                      doctor.available ? 'text-emerald-600' : 'text-red-600'
+                    }`}>
+                      {doctor.available ? 'Available Now' : 'Not Available'}
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 truncate">
