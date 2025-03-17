@@ -11,10 +11,10 @@ const TopDoctors = () => {
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-14">
-          <h2 className="text-3xl font-bold text-gray-900 tracking-tight sm:text-4xl">
+          <h2 className="text-3xl font-bold text-gray-900 tracking-tight sm:text-4xl hover:text-primary transition-colors">
             Our Medical Experts
           </h2>
-          <p className="mt-3 text-lg text-gray-500 max-w-2xl mx-auto">
+          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto hover:text-gray-700 transition-colors">
             Experienced professionals dedicated to your health and well-being
           </p>
         </div>
@@ -49,29 +49,29 @@ const TopDoctors = () => {
                 <div className="p-4 space-y-2">
                   <div className="flex items-center gap-1.5">
                     <span className={`w-2 h-2 rounded-full animate-pulse ${
-                      doctor.available ? 'bg-emerald-500' : 'bg-red-500'
+                      doctor.available ? 'bg-primary' : 'bg-red-500'
                     }`}></span>
                     <span className={`text-sm font-medium ${
-                      doctor.available ? 'text-emerald-600' : 'text-red-600'
-                    }`}>
+                      doctor.available ? 'text-primary hover:text-primary/90' : 'text-red-600 hover:text-red-700'
+                    } transition-colors`}>
                       {doctor.available ? 'Available Now' : 'Not Available'}
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate hover:text-primary transition-colors">
                     {doctor.name}
                   </h3>
-                  <p className="text-sm text-gray-600 font-medium truncate">
+                  <p className="text-sm text-gray-600 font-medium truncate hover:text-gray-700 transition-colors">
                     {doctor.speciality}
                   </p>
                 </div>
 
                 {/* Hover Border Effect */}
-                <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-blue-200 transition-all duration-300 pointer-events-none"></div>
+                <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-primary/20 transition-all duration-300 pointer-events-none"></div>
               </div>
             ))
           ) : (
             <div className="col-span-full text-center py-12">
-              <p className="text-gray-500 text-lg">
+              <p className="text-gray-600 text-lg hover:text-gray-700 transition-colors">
                 Our medical team is currently updating - please check back soon
               </p>
             </div>
@@ -87,8 +87,8 @@ const TopDoctors = () => {
             }}
             className="
               inline-flex items-center px-8 py-3.5 border border-transparent
-              text-base font-medium rounded-xl text-white bg-blue-600
-              hover:bg-blue-700 transition-colors duration-300 shadow-sm hover:shadow-md
+              text-base font-medium rounded-xl text-white bg-primary
+              hover:bg-primary/90 transition-colors duration-300 shadow-sm hover:shadow-md
             "
           >
             View All Professionals
