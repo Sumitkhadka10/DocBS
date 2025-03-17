@@ -178,22 +178,22 @@ const Appointment = () => {
             <div className="space-y-8">
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-5">
-                <div className="col-span-2 sm:col-span-1 p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl">
-                  <p className="text-sm text-blue-600 font-medium">
+                <div className="col-span-2 sm:col-span-1 p-5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl">
+                  <p className="text-sm text-primary font-medium hover:text-primary/90 transition-colors">
                     Experience
                   </p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                  <p className="text-3xl font-bold text-gray-900 mt-1 hover:text-primary transition-colors">
                     {docInfo.experience}+
-                    <span className="text-lg text-gray-600 ml-1">years</span>
+                    <span className="text-lg text-gray-600 ml-1 hover:text-gray-700 transition-colors">Experience</span>
                   </p>
                 </div>
 
-                <div className="col-span-2 sm:col-span-1 p-5 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl">
-                  <p className="text-sm text-green-600 font-medium">Fee</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
+                <div className="col-span-2 sm:col-span-1 p-5 bg-gradient-to-br from-primary/10 to-primary/5 rounded-2xl">
+                  <p className="text-sm text-primary font-medium hover:text-primary/90 transition-colors">Fee</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1 hover:text-primary transition-colors">
                     {currencySymbol}
                     {docInfo.fee}
-                    <span className="text-lg text-gray-600 ml-1">/session</span>
+                    <span className="text-lg text-gray-600 ml-1 hover:text-gray-700 transition-colors">/session</span>
                   </p>
                 </div>
               </div>
@@ -201,18 +201,18 @@ const Appointment = () => {
               {/* Professional Bio */}
               <div className="space-y-5">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <div className="w-9 h-9 bg-primary/10 rounded-lg flex items-center justify-center">
                     <img
                       src={assets.info_icon}
                       className="w-5 h-5"
                       alt="Info"
                     />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">
+                  <h3 className="text-xl font-bold text-gray-900 hover:text-primary transition-colors">
                     About Doctor
                   </h3>
                 </div>
-                <p className="text-gray-600 leading-relaxed text-lg">
+                <p className="text-gray-600 leading-relaxed text-lg hover:text-gray-700 transition-colors">
                   {docInfo.about}
                 </p>
               </div>
@@ -225,10 +225,10 @@ const Appointment = () => {
           <div className="max-w-4xl mx-auto">
             {/* Calendar Header */}
             <div className="text-center mb-14">
-              <h2 className="text-3xl font-bold text-gray-900 mb-3">
+              <h2 className="text-3xl font-bold text-gray-900 mb-3 hover:text-primary transition-colors">
                 Schedule Your Visit
               </h2>
-              <p className="text-gray-600 max-w-lg mx-auto">
+              <p className="text-gray-600 max-w-lg mx-auto hover:text-gray-700 transition-colors">
                 Select preferred date and time for your consultation
               </p>
             </div>
@@ -242,8 +242,8 @@ const Appointment = () => {
                     onClick={() => setSlotIndex(index)}
                     className={`flex flex-col items-center p-3 rounded-xl cursor-pointer transition-all border-2 ${
                       slotIndex === index
-                        ? "border-blue-600 bg-blue-600 text-white shadow-lg"
-                        : "border-gray-200 hover:border-blue-400 bg-white"
+                        ? "border-primary bg-primary text-white shadow-lg"
+                        : "border-gray-200 hover:border-primary/30 bg-white text-gray-900 hover:text-primary"
                     }`}
                   >
                     <span className="block text-xs font-semibold uppercase tracking-wider">
@@ -260,7 +260,7 @@ const Appointment = () => {
 
             {/* Time Selection */}
             <div className="mb-12">
-              <h3 className="text-lg font-semibold text-gray-900 text-center mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 text-center mb-8 hover:text-primary transition-colors">
                 Available Time Slots
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -270,8 +270,8 @@ const Appointment = () => {
                     onClick={() => setSlotTime(item.time)}
                     className={`p-4 text-base font-medium rounded-xl transition-all ${
                       item.time === slotTime
-                        ? "bg-blue-600 text-white shadow-lg"
-                        : "bg-gray-50 hover:bg-blue-50 text-gray-700 hover:text-blue-600"
+                        ? "bg-primary text-white shadow-lg"
+                        : "bg-gray-50 hover:bg-primary/10 text-gray-600 hover:text-primary"
                     }`}
                   >
                     {item.time.toLowerCase()}
@@ -284,12 +284,12 @@ const Appointment = () => {
             <div className="text-center mt-10">
               <button
                 onClick={bookAppointment}
-                className="relative overflow-hidden bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold py-5 px-20 rounded-2xl transition-all transform hover:scale-[1.02] shadow-xl hover:shadow-2xl"
+                className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white text-lg font-semibold py-5 px-20 rounded-2xl transition-all transform hover:scale-[1.02] shadow-xl hover:shadow-2xl"
               >
                 <span className="relative z-10">Confirm Appointment</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 opacity-50 blur-lg transition-opacity hover:opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 opacity-50 blur-lg transition-opacity hover:opacity-60" />
               </button>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-gray-500 mt-4 hover:text-gray-600 transition-colors">
                 Please note that the appointment is subject to availability
               </p>
             </div>
