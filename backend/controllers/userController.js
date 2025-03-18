@@ -1,3 +1,4 @@
+// backend/controllers/userController.js
 import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -6,6 +7,8 @@ import userModel from "../models/userModel.js";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import reportCardModel from "../models/ReportCard.js";
+import notificationModel from "../models/notificationModel.js";
+import { scheduleJob } from "node-schedule";
 
 // API to register user
 const registerUser = async (req, res) => {
@@ -15,12 +18,10 @@ const registerUser = async (req, res) => {
       return res.json({ success: false, message: "Missing Details" });
     }
 
-    // Validate email format
     if (!validator.isEmail(email)) {
       return res.json({ success: false, message: "Invalid Email" });
     }
 
-    // Validate strong password
     if (password.length < 8) {
       return res.json({
         success: false,
@@ -28,7 +29,6 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Hashing user password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -41,7 +41,6 @@ const registerUser = async (req, res) => {
     const newUser = new userModel(userData);
     const user = await newUser.save();
 
-    // Generate token
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     res.json({ success: true, token });
@@ -79,7 +78,6 @@ const getProfile = async (req, res) => {
   try {
     const { userId } = req.body;
     const userData = await userModel.findById(userId).select("-password");
-
     res.json({ success: true, userData });
   } catch (error) {
     console.error(error);
@@ -106,12 +104,9 @@ const updateProfile = async (req, res) => {
     });
 
     if (imageFile) {
-      // Upload image to Cloudinary
       const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
         resource_type: "image",
       });
-
-      // Update user image
       const imageURL = imageUpload.secure_url;
       await userModel.findByIdAndUpdate(userId, { image: imageURL });
     }
@@ -121,6 +116,53 @@ const updateProfile = async (req, res) => {
     console.error(error);
     res.json({ success: false, message: error.message });
   }
+};
+
+// Function to create and schedule notifications with WebSocket
+const createNotification = async (req, userId, appointmentId, slotDate, slotTime, docName) => {
+  const [day, month, year] = slotDate.split('_');
+  const appointmentDateTime = new Date(`${year}-${month}-${day} ${slotTime}`);
+  const now = new Date();
+  const minutesDiff = (appointmentDateTime - now) / (1000 * 60);
+
+  let notificationTime;
+  if (minutesDiff <= 10) {
+    notificationTime = new Date(); // Immediate notification
+  } else {
+    notificationTime = new Date(appointmentDateTime - 15 * 60 * 1000); // 15 minutes before
+  }
+
+  // Immediate confirmation notification
+  const message = `Reminder: Your appointment with Dr. ${docName} is scheduled for ${slotTime} on ${day}/${month}/${year}.`;
+  const notification = new notificationModel({
+    userId,
+    appointmentId,
+    message,
+  });
+  await notification.save();
+
+  // Schedule the reminder notification
+  const io = req.app.get("io"); // Access Socket.IO instance
+  scheduleJob(notificationTime, async () => {
+    const reminderMessage = `Upcoming: Your appointment with Dr. ${docName} is in 15 minutes at ${slotTime} on ${day}/${month}/${year}.`;
+    const reminderNotification = new notificationModel({
+      userId,
+      appointmentId,
+      message: reminderMessage,
+    });
+    await reminderNotification.save();
+
+    // Emit the reminder to the user's WebSocket room
+    io.to(userId).emit("newNotification", {
+      _id: reminderNotification._id,
+      message: reminderNotification.message,
+      createdAt: reminderNotification.createdAt,
+      isRead: false,
+    });
+    console.log(`Reminder notification emitted to user ${userId}: ${reminderMessage}`);
+  });
+
+  return notification;
 };
 
 // API to book appointment
@@ -135,7 +177,6 @@ const bookAppointment = async (req, res) => {
 
     let slotsBooked = docData.slots_booked || {};
 
-    // Check if slot is already booked
     if (slotsBooked[slotDate] && slotsBooked[slotDate].includes(slotTime)) {
       return res.json({ success: false, message: "Slot already booked" });
     }
@@ -147,7 +188,6 @@ const bookAppointment = async (req, res) => {
 
     const userData = await userModel.findById(userId).select("-password");
 
-    // Create appointment data
     const appointmentData = {
       userId,
       docId,
@@ -162,8 +202,10 @@ const bookAppointment = async (req, res) => {
     const newAppointment = new appointmentModel(appointmentData);
     await newAppointment.save();
 
-    // Save updated slots in doctor data
     await doctorModel.findByIdAndUpdate(docId, { slots_booked: slotsBooked });
+
+    // Create notification with WebSocket support
+    await createNotification(req, userId, newAppointment._id, slotDate, slotTime, docData.name);
 
     res.json({ success: true, message: "Appointment Booked Successfully" });
   } catch (error) {
@@ -172,52 +214,43 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-//API to get user appointmnet for frontend 
+// API to get user appointments
 const listAppointment = async (req, res) => {
   try {
     const { userId } = req.body;
     const appointments = await appointmentModel.find({ userId });
-
     res.json({ success: true, appointments });
-    
   } catch (error) {
     console.error(error);
-    res.json({ success: false, message: error.message,});
-    
+    res.json({ success: false, message: error.message });
   }
-}
+};
 
-//API to cancel the appointment
-
+// API to cancel appointment
 const cancelAppointment = async (req, res) => {
-
   try {
-    const {userId, appointmentId} = req.body;
+    const { userId, appointmentId } = req.body;
     const appointmentData = await appointmentModel.findById(appointmentId);
 
-    // verify appointment user
     if (appointmentData.userId !== userId) {
       return res.json({ success: false, message: "Unauthorized Action" });
-      
     }
 
-    await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true});
+    await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
 
-    // releasing doctor slot
-    const {docId, slotDate, slotTime} = appointmentData;
+    const { docId, slotDate, slotTime } = appointmentData;
     const doctorData = await doctorModel.findById(docId);
     let slots_booked = doctorData.slots_booked;
     slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime);
-    await doctorModel.findByIdAndUpdate(docId, {slots_booked});
-    res.json({ success: true, message: "Appointment Cancelled Successfully" });
+    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
-    
+    res.json({ success: true, message: "Appointment Cancelled Successfully" });
   } catch (error) {
     console.error(error);
-    res.json({ success: false, message: error.message,});
-    
+    res.json({ success: false, message: error.message });
   }
-}
+};
+
 // API to save report card
 const saveReportCard = async (req, res) => {
   try {
@@ -227,7 +260,6 @@ const saveReportCard = async (req, res) => {
       return res.json({ success: false, message: "All fields are required" });
     }
 
-    // Check if a report card already exists for this page and user
     const existingReport = await reportCardModel.findOne({ userId, page });
     if (existingReport) {
       return res.json({ success: false, message: "Report card already exists for this page. Use edit instead." });
@@ -262,7 +294,7 @@ const updateReportCard = async (req, res) => {
     const reportCard = await reportCardModel.findOneAndUpdate(
       { userId, page },
       { date, doctorName, appointmentTime, content },
-      { new: true, upsert: false } // Don't create if it doesn't exist
+      { new: true, upsert: false }
     );
 
     if (!reportCard) {
@@ -288,5 +320,47 @@ const getReportCards = async (req, res) => {
   }
 };
 
+// API to get user notifications
+const getNotifications = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const notifications = await notificationModel
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .populate('appointmentId', 'slotDate slotTime');
+    res.json({ success: true, notifications });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, saveReportCard, getReportCards, updateReportCard };
+// API to mark notification as read
+const markNotificationRead = async (req, res) => {
+  try {
+    const { userId, notificationId } = req.body;
+    const notification = await notificationModel.findOneAndUpdate(
+      { _id: notificationId, userId },
+      { isRead: true },
+      { new: true }
+    );
+    if (!notification) {
+      return res.json({ success: false, message: "Notification not found" });
+    }
+
+    // Emit WebSocket event to update unread count
+    const io = req.app.get("io");
+    io.to(userId).emit("notificationRead");
+
+    res.json({ success: true, message: "Notification marked as read" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export { 
+  registerUser, loginUser, getProfile, updateProfile, bookAppointment, 
+  listAppointment, cancelAppointment, saveReportCard, getReportCards, 
+  updateReportCard, getNotifications, markNotificationRead 
+};
