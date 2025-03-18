@@ -1,27 +1,28 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { AppContext } from "../context/AppContext.jsx";
 import { assets } from "../assets/assets";
 
 const HeaderPage = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { token } = useContext(AppContext);
 
-  const checkAuth = () => {
-    const authToken = localStorage.getItem("authToken");
-    return !!authToken;
+  const handleCTAClick = () => {
+    console.log("Handling CTA click, token exists:", !!token);
+    if (token) {
+      navigate("/doctors");
+    } else {
+      navigate("/login");
+    }
+    // Scroll to top after navigation
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 0); // Delay ensures navigation completes
   };
 
   useEffect(() => {
-    setIsLoggedIn(checkAuth());
-  }, []);
-
-  const handleCTAClick = () => {
-    if (isLoggedIn) {
-      navigate("/doctors");
-    } else {
-      navigate("/login"); 
-    }
-  };
+    console.log("Token from context:", token);
+  }, [token]);
 
   const stats = [
     { value: "5K+", label: "Daily Appointments" },
