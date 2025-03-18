@@ -54,52 +54,66 @@ const Navbar = () => {
                 {/* User Section / Login Button */}
                 <div className='flex items-center'>
                     {token && userData ? (
-                        <div className='relative group'>
-                            <div className='flex items-center gap-2 p-2 rounded-full cursor-pointer hover:bg-gray-50 transition-colors'>
-                                <img className='w-8 h-8 rounded-full object-cover border-2 border-indigo-100' src={userData.image} alt="User" />
-                                <span className='text-gray-700 font-medium pr-1 hidden sm:inline'>{userData.name || 'User'}</span>
-                                <img className='w-2.5 opacity-70' src={assets.dropdown_icon} alt="" />
-                            </div>
-                            
-                            <div className='absolute right-0 mt-2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20'>
-                                <div className='bg-white rounded-lg shadow-lg overflow-hidden w-48 border border-gray-100'>
-                                    <div className='flex flex-col text-sm'>
-                                        <button 
-                                            onClick={() => navigate('/my-profile')} 
-                                            className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                            </svg>
-                                            My Profile
-                                        </button>
-                                        <button 
-                                            onClick={() => navigate('/my-appointments')} 
-                                            className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            My Appointments
-                                        </button>
-                                        <button 
-                                            onClick={() => navigate('/my-report-card')} 
-                                            className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            My ReportCard
-                                        </button>
-                                        <button 
-                                            onClick={logout} 
-                                            className='text-left px-4 py-3 hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2'
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                                            </svg>
-                                            Logout
-                                        </button>
+                        <div className='flex items-center gap-3'>
+                            {/* Notification Bell - Only shows when logged in */}
+                            <button 
+                                onClick={() => navigate('/notifications')}
+                                className='p-2 rounded-full hover:bg-gray-100 transition-colors relative'
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                {/* Optional: Add notification dot if there are unread notifications */}
+                                {/* <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span> */}
+                            </button>
+
+                            <div className='relative group'>
+                                <div className='flex items-center gap-2 p-2 rounded-full cursor-pointer hover:bg-gray-50 transition-colors'>
+                                    <img className='w-8 h-8 rounded-full object-cover border-2 border-indigo-100' src={userData.image} alt="User" />
+                                    <span className='text-gray-700 font-medium pr-1 hidden sm:inline'>{userData.name || 'User'}</span>
+                                    <img className='w-2.5 opacity-70' src={assets.dropdown_icon} alt="" />
+                                </div>
+                                
+                                <div className='absolute right-0 mt-2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-20'>
+                                    <div className='bg-white rounded-lg shadow-lg overflow-hidden w-48 border border-gray-100'>
+                                        <div className='flex flex-col text-sm'>
+                                            <button 
+                                                onClick={() => navigate('/my-profile')} 
+                                                className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                                My Profile
+                                            </button>
+                                            <button 
+                                                onClick={() => navigate('/my-appointments')} 
+                                                className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                My Appointments
+                                            </button>
+                                            <button 
+                                                onClick={() => navigate('/my-report-card')} 
+                                                className='text-left px-4 py-3 hover:bg-gray-50 text-gray-700 transition-colors flex items-center gap-2'
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                My ReportCard
+                                            </button>
+                                            <button 
+                                                onClick={logout} 
+                                                className='text-left px-4 py-3 hover:bg-red-50 text-red-600 transition-colors flex items-center gap-2'
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 01-3h4a3 3 0 013 3v1" />
+                                                </svg>
+                                                Logout
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -178,6 +192,21 @@ const Navbar = () => {
                     >
                         CONTACT
                     </NavLink>
+                    
+                    {token && userData && (
+                        <NavLink 
+                            to='/notifications' 
+                            onClick={() => setShowMenu(false)} 
+                            className={({isActive}) => 
+                                `block w-full text-left px-3 py-3 rounded-md mb-1 flex items-center gap-2 ${isActive ? 'text-indigo-700 border-l-4 border-indigo-500 pl-2' : 'text-gray-700 hover:bg-gray-50'}`
+                            }
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            NOTIFICATIONS
+                        </NavLink>
+                    )}
                     
                     {!token && (
                         <NavLink 
