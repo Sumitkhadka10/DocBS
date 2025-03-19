@@ -29,10 +29,10 @@ const Navbar = () => {
   return (
     <div
       className={`sticky top-0 z-50 bg-white transition-all duration-500 ${
-        scrolled ? 'shadow-lg border-b border-gray-100' : 'bg-white/95 backdrop-blur-sm'
+        scrolled ? 'shadow-lg border-b border-gray-200' : 'bg-white'
       }`}
     >
-      <div className="h-1 bg-gradient-to-r from-blue-700 via-purple-600 to-indigo-700 bg-size-200 animate-gradient-x"></div>
+      <div className="h-1 bg-indigo-600"></div>
       <div className="flex justify-between items-center py-4 px-0 md:pr-6 lg:pr-8">
         <div className="flex items-center space-x-4 pl-4">
           <div className="relative group">
@@ -42,37 +42,36 @@ const Navbar = () => {
               alt="Company Logo"
               onClick={() => navigate('/admin-dashboard')}
             />
-            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 group-hover:w-3/4 transition-all duration-300"></div>
+            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-indigo-600 group-hover:w-3/4 transition-all duration-300"></div>
           </div>
           {aToken && (
             <div className="relative hidden sm:block">
               <div
                 className="
                   relative z-10 py-1.5 px-4 rounded-full font-medium text-sm tracking-wide
-                  bg-gradient-to-r from-blue-700 to-indigo-600 text-white
-                  shadow-md border border-white/20
+                  bg-indigo-600 text-white
+                  shadow-md border border-indigo-600/20
                 "
               >
                 Admin
               </div>
-              <div className="absolute inset-0 rounded-full blur opacity-30 bg-blue-400 animate-pulse"></div>
             </div>
           )}
         </div>
         <div className="relative pr-4">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-md bg-white/90 hover:bg-white group"
+            className="flex items-center gap-2 p-1.5 pr-3 rounded-full border border-gray-200 hover:border-indigo-600/30 transition-all duration-300 hover:bg-indigo-600/20 group"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-700 to-indigo-600 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+            <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold shadow-sm">
               A
             </div>
-            <span className="hidden md:block text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+            <span className="hidden md:block text-sm font-medium text-gray-600 group-hover:text-indigo-600 transition-colors">
               Admin
             </span>
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors"
+              className="h-4 w-4 text-gray-500 group-hover:text-indigo-600 transition-colors"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -83,13 +82,13 @@ const Navbar = () => {
           {dropdownOpen && (
             <>
               <div
-                className="fixed inset-0 z-10 bg-black/5 backdrop-blur-sm"
+                className="fixed inset-0 z-10 bg-black/5"
                 onClick={() => setDropdownOpen(false)}
               ></div>
-              <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-xl py-2 z-20 border border-gray-100 animate-fade-in-down overflow-hidden">
+              <div className="absolute right-0 mt-3 w-48 bg-white rounded-xl shadow-xl py-2 z-20 border border-gray-200 animate-fade-in-down overflow-hidden">
                 <button
                   onClick={logout}
-                  className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors duration-200"
+                  className="w-full text-left px-4 py-3 text-sm text-gray-600 hover:bg-indigo-600/20 hover:text-indigo-600 flex items-center gap-2 transition-colors duration-200"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
