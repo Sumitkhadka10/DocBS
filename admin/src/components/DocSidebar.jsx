@@ -8,8 +8,8 @@ const DocSidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   const navItemStyle = "flex items-center w-full px-6 py-3 text-base font-medium rounded-md transition-all duration-200";
-  const activeStyle = "bg-sky-500 text-white shadow-md";
-  const inactiveStyle = "text-gray-700 hover:bg-sky-50 hover:text-sky-700";
+  const activeStyle = "bg-indigo-600 text-white shadow-md";
+  const inactiveStyle = "text-gray-600 hover:bg-indigo-600/20 hover:text-indigo-600";
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
@@ -19,7 +19,7 @@ const DocSidebar = () => {
     <>
       {/* Mobile toggle button */}
       <button
-        className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md border border-gray-200 hover:bg-sky-50"
+        className="lg:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow-md border border-gray-200 hover:bg-indigo-600/20"
         onClick={toggleSidebar}
         aria-label={collapsed ? "Open Sidebar" : "Close Sidebar"}
       >
@@ -44,10 +44,10 @@ const DocSidebar = () => {
             {/* Logo area */}
             <div className="h-20 flex items-center px-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">D</span>
+                <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center">
+                  <span className="text-white font-semibold text-lg">D</span>
                 </div>
-                <h1 className="text-xl font-bold text-sky-500">Doctor Portal</h1>
+                <h1 className="text-xl font-semibold text-gray-900">Doctor Portal</h1>
               </div>
             </div>
 
@@ -98,13 +98,13 @@ const DocSidebar = () => {
             {/* Doctor profile section at bottom */}
             <div className="border-t border-gray-200 p-4">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-sky-500 flex items-center justify-center overflow-hidden">
+                <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center overflow-hidden">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 {/* Placeholder for dynamic doctor name (if available) */}
-                <span className="text-sm font-medium text-gray-700">Doctor</span>
+                <span className="text-sm font-medium text-gray-600">Doctor</span>
               </div>
             </div>
           </div>
