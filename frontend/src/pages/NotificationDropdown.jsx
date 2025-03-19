@@ -101,9 +101,9 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       {/* Bell Icon with Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full hover:bg-gray-100 transition-colors relative"
+        className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-300 relative"
       >
-        <Bell className="h-6 w-6 text-gray-600" />
+        <Bell className="h-6 w-6 text-gray-600 hover:text-primary transition-colors duration-300" />
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 h-4 w-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center">
             {unreadCount}
@@ -113,13 +113,17 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-y-auto">
-          <div className="p-3 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">Notifications</h3>
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 z-50 max-h-96 overflow-y-auto">
+          <div className="p-3 border-b border-gray-100">
+            <h3 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors duration-300">
+              Notifications
+            </h3>
           </div>
           
           {notifications.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">No notifications</div>
+            <div className="p-4 text-center text-gray-600 text-sm hover:text-gray-700 transition-colors duration-300">
+              No notifications
+            </div>
           ) : (
             notifications.map((notification) => (
               <NotificationItem 
@@ -137,7 +141,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
                 setIsOpen(false);
                 navigate("/notifications");
               }}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-primary hover:text-primary-dark transition-colors duration-300"
             >
               See all notifications
             </button>
@@ -151,25 +155,25 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
 // Extracted notification item component
 const NotificationItem = ({ notification, markAsRead, formatTimestamp }) => (
   <div
-    className={`flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-      !notification.isRead ? "bg-blue-50" : ""
+    className={`flex items-center p-3 border-b border-gray-100 hover:bg-primary/5 transition-colors duration-300 ${
+      !notification.isRead ? "bg-primary/10" : ""
     }`}
   >
     {!notification.isRead && (
-      <div className="w-2 h-2 bg-blue-600 rounded-full mr-2" />
+      <div className="w-2 h-2 bg-primary rounded-full mr-2" />
     )}
     <div className="flex-1">
-      <p className={`text-sm ${notification.isRead ? "text-gray-600" : "text-gray-900 font-semibold"}`}>
+      <p className={`text-sm ${notification.isRead ? "text-gray-600 hover:text-gray-700" : "text-gray-900 font-semibold hover:text-primary"} transition-colors duration-300`}>
         {notification.message}
       </p>
-      <p className="text-xs text-gray-400 mt-1">
+      <p className="text-xs text-gray-600 mt-1 hover:text-gray-700 transition-colors duration-300">
         {formatTimestamp(notification.createdAt)}
       </p>
     </div>
     {!notification.isRead && (
       <button
         onClick={() => markAsRead(notification._id)}
-        className="ml-2 text-xs text-blue-600 hover:text-blue-800"
+        className="ml-2 text-xs text-primary hover:text-primary-dark transition-colors duration-300"
       >
         Mark as read
       </button>
