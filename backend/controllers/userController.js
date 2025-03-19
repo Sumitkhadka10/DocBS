@@ -1,4 +1,3 @@
-// backend/controllers/userController.js
 import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -204,7 +203,7 @@ const bookAppointment = async (req, res) => {
 
     await doctorModel.findByIdAndUpdate(docId, { slots_booked: slotsBooked });
 
-    // Create notification with WebSocket support
+    // Creating notification with WebSocket support
     await createNotification(req, userId, newAppointment._id, slotDate, slotTime, docData.name);
 
     res.json({ success: true, message: "Appointment Booked Successfully" });
