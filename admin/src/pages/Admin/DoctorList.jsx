@@ -1,48 +1,48 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { AdminContext } from '../../context/AdminContext'
+import React, { useContext, useEffect, useState } from 'react';
+import { AdminContext } from '../../context/AdminContext';
 
 const DoctorList = () => {
-  const { doctors, aToken, getAllDoctors, changeAvailability } = useContext(AdminContext)
-  const [hoveredCard, setHoveredCard] = useState(null)
-  const [filter, setFilter] = useState('all')
+  const { doctors, aToken, getAllDoctors, changeAvailability } = useContext(AdminContext);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [filter, setFilter] = useState('all');
   
   useEffect(() => {
-    if (aToken) getAllDoctors()
-  }, [aToken])
+    if (aToken) getAllDoctors();
+  }, [aToken]);
 
   const filteredDoctors = doctors.filter(doctor => {
-    if (filter === 'all') return true
-    return filter === 'available' ? doctor.available : !doctor.available
-  })
+    if (filter === 'all') return true;
+    return filter === 'available' ? doctor.available : !doctor.available;
+  });
 
   // Status icons
   const availableIcon = (
     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
-  )
+  );
   
   const unavailableIcon = (
     <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
-  )
+  );
 
   return (
-    <div className="p-8 max-h-[90vh] overflow-y-auto bg-gradient-to-br from-blue-50 via-white to-indigo-50 w-full">
+    <div className="p-8 max-h-[90vh] overflow-y-auto bg-white w-full">
       {/* Header with decorative elements */}
       <div className="relative mb-10">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-100 rounded-full opacity-20 -mt-10 -mr-10"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-100 rounded-full opacity-20 -mb-10 -ml-10"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full opacity-20 -mt-10 -mr-10"></div>
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-50 rounded-full opacity-20 -mb-10 -ml-10"></div>
         
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 relative z-10">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Doctor Directory</h1>
-            <p className="text-gray-500 text-lg">Manage your medical professionals</p>
+            <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-500 mb-2">Doctor Directory</h1>
+            <p className="text-sm text-gray-500">Manage your medical professionals</p>
           </div>
-          <div className="px-6 py-4 bg-white rounded-xl shadow-md border border-gray-100 flex items-center">
-            <span className="font-bold text-gray-800 text-2xl">{filteredDoctors.length}</span>
-            <span className="text-gray-500 ml-2 text-lg">Doctors</span>
+          <div className="px-6 py-4 bg-white rounded-md shadow-md border border-gray-200 flex items-center">
+            <span className="font-bold text-xl text-gray-700">{filteredDoctors.length}</span>
+            <span className="text-sm text-gray-500 ml-2">Doctors</span>
           </div>
         </div>
       </div>
@@ -50,10 +50,10 @@ const DoctorList = () => {
       {/* Enhanced filter tabs */}
       <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
         <button 
-          className={`px-5 py-3 rounded-xl font-medium text-base transition-all ${
+          className={`px-5 py-3 rounded-md font-medium text-base transition-all ${
             filter === 'all' 
-              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
+              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md' 
+              : 'bg-white text-gray-700 hover:bg-blue-50 shadow-md border border-gray-200'
           }`}
           onClick={() => setFilter('all')}
         >
@@ -65,10 +65,10 @@ const DoctorList = () => {
           </span>
         </button>
         <button 
-          className={`px-5 py-3 rounded-xl font-medium text-base transition-all ${
+          className={`px-5 py-3 rounded-md font-medium text-base transition-all ${
             filter === 'available' 
-              ? 'bg-green-600 text-white shadow-lg shadow-green-200' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
+              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md' 
+              : 'bg-white text-gray-700 hover:bg-blue-50 shadow-md border border-gray-200'
           }`}
           onClick={() => setFilter('available')}
         >
@@ -78,10 +78,10 @@ const DoctorList = () => {
           </span>
         </button>
         <button 
-          className={`px-5 py-3 rounded-xl font-medium text-base transition-all ${
+          className={`px-5 py-3 rounded-md font-medium text-base transition-all ${
             filter === 'unavailable' 
-              ? 'bg-red-600 text-white shadow-lg shadow-red-200' 
-              : 'bg-white text-gray-700 hover:bg-gray-50 shadow-md'
+              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md' 
+              : 'bg-white text-gray-700 hover:bg-blue-50 shadow-md border border-gray-200'
           }`}
           onClick={() => setFilter('unavailable')}
         >
@@ -97,7 +97,7 @@ const DoctorList = () => {
         {filteredDoctors.map((doctor, index) => (
           <div 
             key={index} 
-            className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 transform hover:-translate-y-1"
+            className="bg-white rounded-md overflow-hidden shadow-md hover:shadow-lg transition-all duration-200 border border-gray-200 transform hover:-translate-y-1"
             onMouseEnter={() => setHoveredCard(index)}
             onMouseLeave={() => setHoveredCard(null)}
           >
@@ -113,10 +113,10 @@ const DoctorList = () => {
                   }}
                 />
               </div>
-              <div className={`absolute top-4 right-4 px-4 py-2 rounded-full text-xs font-bold tracking-wide flex items-center ${
+              <div className={`absolute top-4 right-4 px-4 py-2 rounded-md text-xs font-bold tracking-wide flex items-center ${
                 doctor.available 
-                  ? 'bg-green-100 text-green-700 border border-green-200' 
-                  : 'bg-red-100 text-red-600 border border-red-200'
+                  ? 'bg-blue-500 text-white border border-blue-600' 
+                  : 'bg-red-500 text-white border border-red-600'
               }`}>
                 {doctor.available ? availableIcon : unavailableIcon}
                 {doctor.available ? 'Available' : 'Unavailable'}
@@ -124,12 +124,12 @@ const DoctorList = () => {
             </div>
             
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-1 hover:text-indigo-600 transition-colors">
+              <h2 className="text-base font-medium text-gray-700 mb-1 hover:text-blue-600 transition-colors">
                 {doctor.name}
               </h2>
               
               <div className="flex items-center mb-4">
-                <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 text-sm font-medium rounded-md mr-2">
+                <span className="inline-block px-3 py-1 bg-blue-50 text-gray-700 text-sm font-medium rounded-md mr-2">
                   {doctor.speciality}
                 </span>
                 
@@ -140,9 +140,9 @@ const DoctorList = () => {
                 )}
               </div>
               
-              <div className="mt-4 pt-4 border-t border-gray-100">
+              <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-700">Availability</span>
+                  <span className="text-sm font-medium text-gray-700">Availability</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
                       type="checkbox" 
@@ -151,7 +151,7 @@ const DoctorList = () => {
                       className="sr-only"
                     />
                     <div className={`w-12 h-6 rounded-full transition ${
-                      doctor.available ? 'bg-primary' : 'bg-gray-300'
+                      doctor.available ? 'bg-gradient-to-r from-blue-600 to-blue-500' : 'bg-gray-300'
                     }`}>
                       <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-md transition-transform ${
                         doctor.available ? 'translate-x-6' : ''
@@ -167,14 +167,14 @@ const DoctorList = () => {
       
       {/* Enhanced empty state */}
       {filteredDoctors.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-96 bg-white rounded-2xl border border-gray-100 shadow-lg">
-          <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-6">
-            <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <div className="flex flex-col items-center justify-center h-96 bg-white rounded-md border border-gray-200 shadow-md">
+          <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+            <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
           </div>
-          <h3 className="text-gray-800 font-bold text-2xl mb-2">No doctors found</h3>
-          <p className="text-gray-500 text-lg text-center max-w-md">
+          <h3 className="text-xl font-bold text-gray-700 mb-2">No doctors found</h3>
+          <p className="text-sm text-gray-500 text-center max-w-md">
             {filter === 'all' 
               ? 'There are no doctors available in the system at the moment.' 
               : `No ${filter} doctors found. Try changing the filter.`}
@@ -182,7 +182,7 @@ const DoctorList = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default DoctorList
+export default DoctorList;
