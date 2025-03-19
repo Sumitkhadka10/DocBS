@@ -21,17 +21,19 @@ const Footer = () => {
             <img
               src={assets.logo}
               alt="HealthCare Logo"
-              className="w-40 h-auto mb-4 cursor-pointer"
+              className="w-40 h-auto mb-4 cursor-pointer transform transition-transform duration-300 hover:scale-105"
               onClick={scrollToTop}
             />
-            <p className="text-gray-500 text-[15px] leading-relaxed">
+            <p className="text-gray-600 text-sm hover:text-gray-700 transition-colors duration-300">
               Connecting you with trusted healthcare professionals. Book appointments seamlessly and manage your health with confidence.
             </p>
           </div>
 
           {/* Navigation Links */}
           <div className="space-y-5">
-            <h3 className="text-gray-800 font-semibold mb-4 text-lg">Quick Links</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4 hover:text-primary transition-colors duration-300">
+              Quick Links
+            </h3>
             <ul className="space-y-3">
               {[
                 { name: "Home", path: "/" },
@@ -44,8 +46,8 @@ const Footer = () => {
                     to={link.path}
                     onClick={scrollToTop}
                     className={({ isActive }) =>
-                      `text-gray-500 hover:text-primary transition-colors text-[15px] ${
-                        isActive ? "text-primary font-medium" : ""
+                      `text-gray-600 text-sm hover:text-primary transition-colors duration-300 ${
+                        isActive ? "text-primary font-semibold" : ""
                       }`
                     }
                   >
@@ -58,25 +60,27 @@ const Footer = () => {
 
           {/* Contact Information */}
           <div className="space-y-5">
-            <h3 className="text-gray-800 font-semibold mb-4 text-lg">Contact Us</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4 hover:text-primary transition-colors duration-300">
+              Contact Us
+            </h3>
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <FaMapMarkerAlt className="flex-shrink-0 mt-1 text-gray-500 text-sm" />
-                <p className="text-gray-500 text-[15px]">
+              <div className="flex items-start gap-3 hover:bg-primary/5 p-2 rounded-lg transition-colors duration-300">
+                <FaMapMarkerAlt className="flex-shrink-0 mt-1 text-gray-600 text-sm" />
+                <p className="text-gray-600 text-sm hover:text-gray-700 transition-colors duration-300">
                   Naxal Bhagawati Marga,<br /> Kathmandu, Nepal 44600
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
-                <FaPhoneAlt className="text-gray-500 text-sm" />
-                <a href="tel:+9779813000000" className="text-gray-500 hover:text-primary transition-colors text-[15px]">
+              <div className="flex items-center gap-3 hover:bg-primary/5 p-2 rounded-lg transition-colors duration-300">
+                <FaPhoneAlt className="text-gray-600 text-sm" />
+                <a href="tel:+9779813000000" className="text-gray-600 text-sm hover:text-primary transition-colors duration-300">
                   +977 981 300 0000
                 </a>
               </div>
 
-              <div className="flex items-center gap-3">
-                <FaEnvelope className="text-gray-500 text-sm" />
-                <a href="mailto:doctorbooking@gmail.com" className="text-gray-500 hover:text-primary transition-colors text-[15px]">
+              <div className="flex items-center gap-3 hover:bg-primary/5 p-2 rounded-lg transition-colors duration-300">
+                <FaEnvelope className="text-gray-600 text-sm" />
+                <a href="mailto:doctorbooking@gmail.com" className="text-gray-600 text-sm hover:text-primary transition-colors duration-300">
                   doctorbooking@gmail.com
                 </a>
               </div>
@@ -91,12 +95,12 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           
           {/* Copyright Text */}
-          <p className="text-gray-500 text-sm text-center">
+          <p className="text-gray-600 text-sm text-center hover:text-gray-700 transition-colors duration-300">
             CopyRight © 2025 Doctor Booking System - All Rights Reserved.
           </p>
 
           {/* Social Media Links */}
-          <div className="flex gap-4 text-gray-500">
+          <div className="flex gap-4 text-gray-600">
             {[
               { href: "https://facebook.com", icon: <FaFacebookF className="text-lg" /> },
               { href: "https://twitter.com", icon: <FaTwitter className="text-lg" /> },
@@ -107,7 +111,7 @@ const Footer = () => {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-primary transition-colors"
+                className="hover:text-primary transition-colors duration-300 transform hover:scale-110"
               >
                 {social.icon}
               </a>
@@ -116,10 +120,10 @@ const Footer = () => {
 
           {/* Legal Links */}
           <div className="flex gap-6 text-sm">
-            <a href="#" className="text-gray-500 hover:text-primary transition-colors">
+            <a href="#" className="text-gray-600 hover:text-primary transition-colors duration-300">
               Privacy Policy
             </a>
-            <a href="#" className="text-gray-500 hover:text-primary transition-colors">
+            <a href="#" className="text-gray-600 hover:text-primary transition-colors duration-300">
               Terms of Service
             </a>
           </div>
