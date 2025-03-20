@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { DoctorContext } from '../../context/DoctorContext';
 import { AppContext } from '../../context/AppContext';
+import DoctorReportCard from './DoctorReportCard'; 
 
 const DoctorAppointments = () => {
   const { dToken, appointments, getAppointments, completeAppointment, cancelAppointment } = useContext(DoctorContext);
@@ -8,6 +9,7 @@ const DoctorAppointments = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] = useState(null); 
 
   useEffect(() => { if (dToken) getAppointments(); }, [dToken, getAppointments]);
 
@@ -26,6 +28,14 @@ const DoctorAppointments = () => {
     pending: filteredAppointments.filter(item => !item.isCompleted && !item.cancelled).length,
     completed: filteredAppointments.filter(item => item.isCompleted).length,
     cancelled: filteredAppointments.filter(item => item.cancelled).length
+  };
+
+  const handlePatientReportCard = (appointment) => {
+    setSelectedAppointment(appointment); // Open modal with selected appointment
+  };
+
+  const closeReportCardModal = () => {
+    setSelectedAppointment(null); // Close modal
   };
 
   return (
@@ -158,10 +168,13 @@ const DoctorAppointments = () => {
                       </div>
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Appointment Notes</h4>
-                      <p className="text-sm text-gray-600 bg-white p-3 rounded-md border border-gray-200 min-h-[80px]">
-                        {item.notes || 'No notes for this appointment.'}
-                      </p>
+                      <h4 className="font-semibold text-gray-900 mb-3">Patient Report</h4>
+                      <button
+                        onClick={() => handlePatientReportCard(item)}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-600/80 text-white rounded-md text-sm font-medium transition-colors shadow-sm"
+                      >
+                        View/Edit Patient Report Card
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -178,6 +191,15 @@ const DoctorAppointments = () => {
           )}
         </div>
       </div>
+
+      {/* Modal for Report Card */}
+      {selectedAppointment && (
+        <DoctorReportCard
+          appointmentId={selectedAppointment._id}
+          patientName={selectedAppointment.userData.name}
+          onClose={closeReportCardModal}
+        />
+      )}
     </div>
   );
 };
