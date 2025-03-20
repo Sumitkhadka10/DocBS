@@ -2,6 +2,7 @@ import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
+import reportCardModel from "../models/reportCard.js"; // Added import
 
 const changeAvailability = async (req, res) => {
   try {
@@ -17,8 +18,6 @@ const changeAvailability = async (req, res) => {
   }
 };
 
-//creating function so that doctors can be seen in frontend
-
 const doctorList = async (req, res) => {
   try {
     const doctors = await doctorModel.find({}).select(["-password", "-email"]);
@@ -29,7 +28,6 @@ const doctorList = async (req, res) => {
   }
 };
 
-// API for doctor login
 const loginDoctor = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -53,8 +51,6 @@ const loginDoctor = async (req, res) => {
   }
 };
 
-// API to get doctor appointments for doctor panel
-
 const appointmentsDoctor = async (req, res) => {
   try {
     const { docId } = req.body;
@@ -65,8 +61,6 @@ const appointmentsDoctor = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
-
-// API To mark appointment complete for doctor
 
 const appointmentComplete = async (req, res) => {
   try {
@@ -86,8 +80,6 @@ const appointmentComplete = async (req, res) => {
   }
 };
 
-// API To cancel appointment  for doctor
-
 const appointmentCancel = async (req, res) => {
   try {
     const { docId, appointmentId } = req.body;
@@ -106,20 +98,16 @@ const appointmentCancel = async (req, res) => {
   }
 };
 
-// API to get doctor profile for doctor Panel
 const doctorProfile = async (req, res) => {
   try {
     const { docId } = req.body;
     const profileData = await doctorModel.findById(docId).select("-password");
-
     res.json({ success: true, profileData });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
-
-// API to update doctor profile
 
 const updateDoctorProfile = async (req, res) => {
   try {
@@ -132,32 +120,88 @@ const updateDoctorProfile = async (req, res) => {
   }
 };
 
-//API to get dashboard data for doctor panel
-
-const doctorDashboard = async (req,res) => {
+const doctorDashboard = async (req, res) => {
   try {
-    const {docId} = req.body
-    const appointments = await appointmentModel.find({docId})
-    let patients = []
-    appointments.map((item)=>{
+    const { docId } = req.body;
+    const appointments = await appointmentModel.find({ docId });
+    let patients = [];
+    appointments.map((item) => {
       if (!patients.includes(item.userId)) {
-        patients.push(item.userId)
+        patients.push(item.userId);
       }
-    })
+    });
     const dashData = {
       appointments: appointments.length,
       patients: patients.length,
-      latestAppointments: appointments.reverse().slice(0,5)
-    }
-
-    res.json({success:true, dashData})
-    
+      latestAppointments: appointments.reverse().slice(0, 5),
+    };
+    res.json({ success: true, dashData });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
-    
   }
-}
+};
+
+// New API to get a patient's report card by appointment ID
+const getPatientReportCard = async (req, res) => {
+  try {
+    const { docId, appointmentId } = req.body;
+    const appointment = await appointmentModel.findById(appointmentId);
+
+    if (!appointment || appointment.docId.toString() !== docId) {
+      return res.json({ success: false, message: "Unauthorized or invalid appointment" });
+    }
+
+    const userId = appointment.userId;
+    const reportCard = await reportCardModel.findOne({ userId, appointmentId });
+
+    res.json({ success: true, reportCard });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// New API to save or update a patient's report card
+const saveOrUpdatePatientReportCard = async (req, res) => {
+  try {
+    const { docId, appointmentId, date, doctorName, appointmentTime, content } = req.body;
+    const appointment = await appointmentModel.findById(appointmentId);
+
+    if (!appointment || appointment.docId.toString() !== docId) {
+      return res.json({ success: false, message: "Unauthorized or invalid appointment" });
+    }
+
+    const userId = appointment.userId;
+    let reportCard = await reportCardModel.findOne({ userId, appointmentId });
+
+    if (reportCard) {
+      // Update existing report card
+      reportCard = await reportCardModel.findOneAndUpdate(
+        { userId, appointmentId },
+        { date, doctorName, appointmentTime, content },
+        { new: true }
+      );
+      res.json({ success: true, message: "Report card updated successfully", reportCard });
+    } else {
+      // Create new report card
+      reportCard = new reportCardModel({
+        userId,
+        appointmentId,
+        date,
+        doctorName,
+        appointmentTime,
+        content,
+        page: 1, // Default page for doctor-created reports
+      });
+      await reportCard.save();
+      res.json({ success: true, message: "Report card created successfully", reportCard });
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
 
 export {
   changeAvailability,
@@ -169,4 +213,6 @@ export {
   doctorProfile,
   updateDoctorProfile,
   doctorDashboard,
+  getPatientReportCard,
+  saveOrUpdatePatientReportCard,
 };
