@@ -6,6 +6,11 @@ const reportCardSchema = new mongoose.Schema({
     ref: "user",
     required: true,
   },
+  appointmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Appointment",
+    required: false, // Optional for patient-created reports, required for doctor-created ones
+  },
   date: {
     type: String,
     required: true,

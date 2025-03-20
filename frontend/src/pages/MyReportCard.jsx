@@ -7,7 +7,11 @@ import { AppContext } from '../context/AppContext';
 import { assets } from "../assets/assets"; 
 import "./MyReportCard.css"; 
 
-const createIcon = (pathContent, className = "text-indigo-600") => ({ size = 20 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{pathContent}</svg>;
+const createIcon = (pathContent, className = "text-indigo-600") => ({ size = 20 }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    {pathContent}
+  </svg>
+);
 const CalendarIcon = createIcon(<><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></>);
 const ChevronLeftIcon = createIcon(<polyline points="15 18 9 12 15 6"></polyline>);
 const ChevronRightIcon = createIcon(<polyline points="9 18 15 12 9 6"></polyline>);
@@ -16,9 +20,9 @@ const UserIcon = createIcon(<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2
 const DownloadIcon = createIcon(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></>, "text-white");
 
 const MyReportCard = () => {
-  const { doctors, backendUrl, userData } = useContext(AppContext);
+  const { backendUrl, userData } = useContext(AppContext);
 
-  const [currentPage, setCurrentPage] = useState(1),
+  const [currentIndex, setCurrentIndex] = useState(0),
         [reportCards, setReportCards] = useState([]),
         [date, setDate] = useState(""),
         [doctorName, setDoctorName] = useState(""),
@@ -28,11 +32,11 @@ const MyReportCard = () => {
         [error, setError] = useState(""),
         [isEditing, setIsEditing] = useState(false),
         [unsavedChanges, setUnsavedChanges] = useState(false),
-        MAX_PAGES = 30;
+        [isDoctorGenerated, setIsDoctorGenerated] = useState(false);
 
   const reportRef = useRef(null);
   const { toPDF, targetRef } = usePDF({
-    filename: `medical-report-page-${currentPage}.pdf`,
+    filename: `medical-report-${currentIndex + 1}.pdf`,
     page: { 
       margin: { top: 20, right: 20, bottom: 40, left: 20 },
       format: "A4",
@@ -44,7 +48,7 @@ const MyReportCard = () => {
   });
 
   useEffect(() => { fetchReportCards(); }, []);
-  useEffect(() => { if (isEditing) setUnsavedChanges(true); }, [date, doctorName, appointmentTime, content, isEditing]);
+  useEffect(() => { if (isEditing) setUnsavedChanges(true); }, [date, appointmentTime, content, isEditing]);
 
   const fetchReportCards = async () => {
     setLoading(true);
@@ -53,8 +57,9 @@ const MyReportCard = () => {
       if (!token) throw new Error("No authentication token found");
       const response = await axios.get(`${backendUrl}/api/user/report-cards`, { headers: { token } });
       if (response.data.success) {
-        setReportCards(response.data.reportCards || []);
-        loadPageData(response.data.reportCards || [], currentPage);
+        const reports = response.data.reportCards || [];
+        setReportCards(reports);
+        loadReportData(reports, currentIndex);
       } else throw new Error(response.data.message || "Failed to fetch report cards");
     } catch (err) {
       setError(err.message || "Failed to fetch report cards");
@@ -65,15 +70,16 @@ const MyReportCard = () => {
     }
   };
 
-  const loadPageData = (cards, page) => {
-    const entry = cards.find((card) => card.page === page);
-    if (entry) {
-      setDate(entry.date || "");
-      setDoctorName(entry.doctorName || "");
-      setAppointmentTime(entry.appointmentTime || "");
-      setContent(entry.content || "");
+  const loadReportData = (reports, index) => {
+    if (reports.length > 0 && index < reports.length) {
+      const report = reports[index];
+      setDate(report.date || "");
+      setDoctorName(report.doctorName || "");
+      setAppointmentTime(report.appointmentTime || "");
+      setContent(report.content || "");
       setIsEditing(false);
       setUnsavedChanges(false);
+      setIsDoctorGenerated(!!report.appointmentId); // Doctor-generated if tied to appointmentId
     } else {
       setDate("");
       setDoctorName("");
@@ -81,6 +87,7 @@ const MyReportCard = () => {
       setContent("");
       setIsEditing(true);
       setUnsavedChanges(false);
+      setIsDoctorGenerated(false);
     }
   };
 
@@ -96,24 +103,27 @@ const MyReportCard = () => {
   );
 
   const handleNavigation = (direction) => {
-    let newPage = currentPage;
-    if (direction === "next" && currentPage < MAX_PAGES) newPage = currentPage + 1;
-    else if (direction === "prev" && currentPage > 1) newPage = currentPage - 1;
-    setCurrentPage(newPage);
-    loadPageData(reportCards, newPage);
+    let newIndex = currentIndex;
+    if (direction === "next" && (currentIndex < reportCards.length || reportCards.length === 0)) newIndex = currentIndex + 1;
+    else if (direction === "prev" && currentIndex > 0) newIndex = currentIndex - 1;
+    setCurrentIndex(newIndex);
+    loadReportData(reportCards, newIndex);
   };
   const navigate = (direction) => unsavedChanges ? showUnsavedChangesToast(direction) : handleNavigation(direction);
 
   const handleSave = async () => {
-    if (!date || !doctorName || !appointmentTime || !content) {
-      setError("All fields are required");
+    if (!date || !appointmentTime || !content) {
+      setError("Date, Time, and Notes are required");
       return;
     }
     setLoading(true);
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(`${backendUrl}/api/user/save-report-card`, { date, doctorName, appointmentTime, content, page: currentPage }, { headers: { token } });
+      const response = await axios.post(`${backendUrl}/api/user/save-report-card`, 
+        { date, doctorName, appointmentTime, content, page: reportCards.length + 1 }, 
+        { headers: { token } }
+      );
       if (response.data.success) {
         fetchReportCards();
         setIsEditing(false);
@@ -134,15 +144,18 @@ const MyReportCard = () => {
       setIsEditing(true);
       return;
     }
-    if (!date || !doctorName || !appointmentTime || !content) {
-      setError("All fields are required");
+    if (!date || !appointmentTime || !content) {
+      setError("Date, Time, and Notes are required");
       return;
     }
     setLoading(true);
     setError("");
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(`${backendUrl}/api/user/update-report-card`, { date, doctorName, appointmentTime, content, page: currentPage }, { headers: { token } });
+      const response = await axios.post(`${backendUrl}/api/user/update-report-card`, 
+        { date, doctorName, appointmentTime, content, page: reportCards[currentIndex].page }, 
+        { headers: { token } }
+      );
       if (response.data.success) {
         fetchReportCards();
         setIsEditing(false);
@@ -159,7 +172,7 @@ const MyReportCard = () => {
   };
 
   const handleCancel = () => {
-    loadPageData(reportCards, currentPage);
+    loadReportData(reportCards, currentIndex);
     setIsEditing(false);
     setUnsavedChanges(false);
     toast.info("Changes discarded");
@@ -167,7 +180,7 @@ const MyReportCard = () => {
 
   const handleDownloadPDF = () => {
     if (!date || !doctorName || !appointmentTime || !content) {
-      toast.warning("This page has no content to download");
+      toast.warning("This report has no content to download");
       return;
     }
     toPDF();
@@ -176,28 +189,16 @@ const MyReportCard = () => {
 
   const healthQuotes = ["An apple a day keeps the doctor away.", "The greatest wealth is health.", "Take care of your body. It's the only place you have to live.", "Health is not valued until sickness comes.", "Early to bed and early to rise makes a man healthy, wealthy, and wise."];
   const formattedDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  const hasPageData = reportCards.some((card) => card.page === currentPage);
+  const hasData = currentIndex < reportCards.length;
 
-  const InputGroup = ({ label, type, value, onChange, icon: Icon, disabled, options }) => {
+  const InputGroup = ({ label, type, value, onChange, icon: Icon, disabled }) => {
     const [inputError, setInputError] = useState("");
 
     return (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
         <div className="relative">
-          {options ? (
-            <select
-              className={`w-full px-4 py-3 pl-4 pr-10 border ${inputError ? "border-red-300" : "border-gray-300"} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-gray-50`}
-              value={value || ""}
-              onChange={(e) => onChange(e.target.value)}
-              disabled={disabled || loading}
-            >
-              <option value="">Select a doctor</option>
-              {options.map((doctor) => (
-                <option key={doctor._id} value={doctor.name}>{doctor.name}</option>
-              ))}
-            </select>
-          ) : (
+          {type ? (
             <input
               type={type}
               className={`w-full px-4 py-3 pl-4 pr-10 border ${inputError ? "border-red-300" : "border-gray-300"} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-gray-50`}
@@ -206,6 +207,10 @@ const MyReportCard = () => {
               disabled={disabled || loading}
               autoComplete="off"
             />
+          ) : (
+            <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-900 font-medium">
+              {value || ""}
+            </div>
           )}
           {Icon && <div className="absolute right-3 top-3 pointer-events-none"><Icon /></div>}
         </div>
@@ -268,9 +273,28 @@ const MyReportCard = () => {
                   Appointment Details
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <InputGroup label="Appointment Date" type="date" value={date} onChange={setDate} icon={CalendarIcon} disabled={!isEditing}/>
-                  <InputGroup label="Doctor's Name" value={doctorName} onChange={setDoctorName} icon={UserIcon} disabled={!isEditing} options={doctors}/>
-                  <InputGroup label="Appointment Time" type="time" value={appointmentTime} onChange={setAppointmentTime} icon={ClockIcon} disabled={!isEditing}/>
+                  <InputGroup 
+                    label="Appointment Date" 
+                    type="date" 
+                    value={date} 
+                    onChange={setDate} 
+                    icon={CalendarIcon} 
+                    disabled={!isEditing || isDoctorGenerated} 
+                  />
+                  <InputGroup 
+                    label="Doctor's Name" 
+                    value={doctorName} 
+                    icon={UserIcon} 
+                    disabled={true} 
+                  />
+                  <InputGroup 
+                    label="Appointment Time" 
+                    type="time" 
+                    value={appointmentTime} 
+                    onChange={setAppointmentTime} 
+                    icon={ClockIcon} 
+                    disabled={!isEditing || isDoctorGenerated} 
+                  />
                 </div>
               </div>
               <hr className="my-6 border-gray-200" />
@@ -287,7 +311,7 @@ const MyReportCard = () => {
                   Medical Notes
                 </h2>
                 <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
-                  {isEditing ? (
+                  {isEditing && !isDoctorGenerated ? (
                     <textarea
                       className="w-full min-h-64 font-sans text-gray-700 rounded-lg bg-transparent outline-none resize-none"
                       value={content}
@@ -296,7 +320,7 @@ const MyReportCard = () => {
                       disabled={loading}
                     />
                   ) : (
-                    <div className="w-full min-h-64 font-sans text-gray-700">{content}</div>
+                    <div className="w-full min-h-64 font-sans text-gray-700">{content || "No notes available"}</div>
                   )}
                 </div>
               </div>
@@ -304,26 +328,46 @@ const MyReportCard = () => {
 
               {/* Health Quote */}
               <div className="p-6 border border-gray-200 rounded-lg mb-6">
-                <p className="italic text-gray-700 text-base">{healthQuotes[(currentPage - 1) % healthQuotes.length]}</p>
+                <p className="italic text-gray-700 text-base">{healthQuotes[currentIndex % healthQuotes.length]}</p>
               </div>
 
               {/* Footer */}
               <div className="pdf-footer text-center text-gray-600 text-sm mt-8">
-                This is an electronic report card generated from: Doctor Booking System | Page {currentPage} of 1
+                This is an electronic report card generated from: Doctor Booking System | Report {currentIndex + 1} of {reportCards.length || 1}
               </div>
             </div>
 
             {/* UI Controls */}
             <div className="no-print">
               <div className="flex justify-center gap-4 mb-6">
-                {!isEditing && <button onClick={handleEdit} disabled={loading} className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm hover:shadow"}`}>Edit</button>}
-                {isEditing && <>
-                  <button onClick={hasPageData ? handleEdit : handleSave} disabled={loading} className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-500 text-white hover:bg-green-600 shadow-sm hover:shadow"}`}>
-                    {hasPageData ? "Save Changes" : "Save"}
+                {!isEditing && !isDoctorGenerated && (
+                  <button 
+                    onClick={handleEdit} 
+                    disabled={loading} 
+                    className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm hover:shadow"}`}
+                  >
+                    Edit
                   </button>
-                  <button onClick={handleCancel} disabled={loading} className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-red-100 text-red-600 hover:bg-red-200 border border-red-200"}`}>Cancel</button>
-                </>}
-                {!isEditing && hasPageData && (
+                )}
+                {isEditing && !isDoctorGenerated && (
+                  <>
+                    <button 
+                      onClick={hasData ? handleEdit : handleSave} 
+                      disabled={loading} 
+                      className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-500 text-white hover:bg-green-600 shadow-sm hover:shadow"}`}
+                    >
+                      {hasData ? "Save Changes" : "Save"}
+                    </button>
+                    <button 
+                      onClick={handleCancel} 
+                      disabled={loading} 
+                      className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-red-100 text-red-600 hover:bg-red-200 border border-red-200"}`}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {hasData && (
                   <button 
                     onClick={handleDownloadPDF} 
                     disabled={loading} 
@@ -336,11 +380,19 @@ const MyReportCard = () => {
               </div>
 
               <div className="flex items-center justify-between">
-                <button onClick={() => navigate("prev")} disabled={currentPage === 1 || loading} className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${currentPage === 1 || loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 shadow-sm hover:shadow"}`}>
+                <button 
+                  onClick={() => navigate("prev")} 
+                  disabled={currentIndex === 0 || loading} 
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${currentIndex === 0 || loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 shadow-sm hover:shadow"}`}
+                >
                   <ChevronLeftIcon />
                   <span>Previous</span>
                 </button>
-                <button onClick={() => navigate("next")} disabled={currentPage === MAX_PAGES || loading} className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${currentPage === MAX_PAGES || loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"}`}>
+                <button 
+                  onClick={() => navigate("next")} 
+                  disabled={loading} 
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"}`}
+                >
                   <span>Next</span>
                   <ChevronRightIcon />
                 </button>
