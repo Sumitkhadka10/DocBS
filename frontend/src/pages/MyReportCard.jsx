@@ -22,17 +22,22 @@ const DownloadIcon = createIcon(<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-
 const MyReportCard = () => {
   const { backendUrl, userData } = useContext(AppContext);
 
-  const [currentIndex, setCurrentIndex] = useState(0),
-        [reportCards, setReportCards] = useState([]),
-        [date, setDate] = useState(""),
-        [doctorName, setDoctorName] = useState(""),
-        [appointmentTime, setAppointmentTime] = useState(""),
-        [content, setContent] = useState(""),
-        [loading, setLoading] = useState(false),
-        [error, setError] = useState(""),
-        [isEditing, setIsEditing] = useState(false),
-        [unsavedChanges, setUnsavedChanges] = useState(false),
-        [isDoctorGenerated, setIsDoctorGenerated] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [reportCards, setReportCards] = useState([]);
+  const [filteredReportCards, setFilteredReportCards] = useState([]);
+  const [date, setDate] = useState("");
+  const [doctorName, setDoctorName] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
+  const [isDoctorGenerated, setIsDoctorGenerated] = useState(false);
+  const [filters, setFilters] = useState({
+    date: '',
+    doctorName: ''
+  });
 
   const reportRef = useRef(null);
   const { toPDF, targetRef } = usePDF({
@@ -47,8 +52,34 @@ const MyReportCard = () => {
     }
   });
 
-  useEffect(() => { fetchReportCards(); }, []);
-  useEffect(() => { if (isEditing) setUnsavedChanges(true); }, [date, appointmentTime, content, isEditing]);
+  useEffect(() => {
+    fetchReportCards();
+  }, []);
+
+  useEffect(() => {
+    if (isEditing) setUnsavedChanges(true);
+  }, [date, appointmentTime, content, isEditing]);
+
+  useEffect(() => {
+    // Apply filters whenever reportCards or filters change
+    const filtered = reportCards.filter(report => {
+      // Filter by date
+      if (filters.date && report.date) {
+        if (!report.date.toLowerCase().includes(filters.date.toLowerCase())) return false;
+      }
+
+      // Filter by doctor name
+      if (filters.doctorName && report.doctorName) {
+        if (!report.doctorName.toLowerCase().includes(filters.doctorName.toLowerCase())) return false;
+      }
+
+      return true;
+    });
+
+    setFilteredReportCards(filtered);
+    setCurrentIndex(0); // Reset to first report when filters change
+    loadReportData(filtered, 0);
+  }, [reportCards, filters]);
 
   const fetchReportCards = async () => {
     setLoading(true);
@@ -58,8 +89,9 @@ const MyReportCard = () => {
       const response = await axios.get(`${backendUrl}/api/user/report-cards`, { headers: { token } });
       if (response.data.success) {
         const reports = response.data.reportCards || [];
-        setReportCards(reports);
-        loadReportData(reports, currentIndex);
+        // Sort reports by createdAt in descending order (most recent first)
+        const sortedReports = reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setReportCards(sortedReports);
       } else throw new Error(response.data.message || "Failed to fetch report cards");
     } catch (err) {
       setError(err.message || "Failed to fetch report cards");
@@ -71,7 +103,7 @@ const MyReportCard = () => {
   };
 
   const loadReportData = (reports, index) => {
-    if (reports.length > 0 && index < reports.length) {
+    if (reports.length > 0 && index >= 0 && index < reports.length) {
       const report = reports[index];
       setDate(report.date || "");
       setDoctorName(report.doctorName || "");
@@ -79,7 +111,7 @@ const MyReportCard = () => {
       setContent(report.content || "");
       setIsEditing(false);
       setUnsavedChanges(false);
-      setIsDoctorGenerated(!!report.appointmentId); // Doctor-generated if tied to appointmentId
+      setIsDoctorGenerated(!!report.appointmentId);
     } else {
       setDate("");
       setDoctorName("");
@@ -89,6 +121,14 @@ const MyReportCard = () => {
       setUnsavedChanges(false);
       setIsDoctorGenerated(false);
     }
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const showUnsavedChangesToast = (direction) => toast.info(
@@ -104,12 +144,22 @@ const MyReportCard = () => {
 
   const handleNavigation = (direction) => {
     let newIndex = currentIndex;
-    if (direction === "next" && (currentIndex < reportCards.length || reportCards.length === 0)) newIndex = currentIndex + 1;
-    else if (direction === "prev" && currentIndex > 0) newIndex = currentIndex - 1;
+    if (direction === "next" && currentIndex < filteredReportCards.length - 1) {
+      newIndex = currentIndex + 1;
+    } else if (direction === "prev" && currentIndex > 0) {
+      newIndex = currentIndex - 1;
+    }
     setCurrentIndex(newIndex);
-    loadReportData(reportCards, newIndex);
+    loadReportData(filteredReportCards, newIndex);
   };
-  const navigate = (direction) => unsavedChanges ? showUnsavedChangesToast(direction) : handleNavigation(direction);
+
+  const navigate = (direction) => {
+    if (unsavedChanges) {
+      showUnsavedChangesToast(direction);
+    } else {
+      handleNavigation(direction);
+    }
+  };
 
   const handleSave = async () => {
     if (!date || !appointmentTime || !content) {
@@ -125,11 +175,13 @@ const MyReportCard = () => {
         { headers: { token } }
       );
       if (response.data.success) {
-        fetchReportCards();
+        await fetchReportCards();
         setIsEditing(false);
         setUnsavedChanges(false);
         toast.success("Report saved successfully!");
-      } else setError(response.data.message);
+      } else {
+        setError(response.data.message);
+      }
     } catch (err) {
       setError("Failed to save report card");
       console.error("Save error:", err);
@@ -153,15 +205,17 @@ const MyReportCard = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(`${backendUrl}/api/user/update-report-card`, 
-        { date, doctorName, appointmentTime, content, page: reportCards[currentIndex].page }, 
+        { date, doctorName, appointmentTime, content, page: filteredReportCards[currentIndex].page }, 
         { headers: { token } }
       );
       if (response.data.success) {
-        fetchReportCards();
+        await fetchReportCards();
         setIsEditing(false);
         setUnsavedChanges(false);
         toast.success("Changes saved successfully!");
-      } else setError(response.data.message);
+      } else {
+        setError(response.data.message);
+      }
     } catch (err) {
       setError("Failed to update report card");
       console.error("Update error:", err);
@@ -172,7 +226,7 @@ const MyReportCard = () => {
   };
 
   const handleCancel = () => {
-    loadReportData(reportCards, currentIndex);
+    loadReportData(filteredReportCards, currentIndex);
     setIsEditing(false);
     setUnsavedChanges(false);
     toast.info("Changes discarded");
@@ -187,9 +241,15 @@ const MyReportCard = () => {
     toast.success("PDF downloaded successfully");
   };
 
-  const healthQuotes = ["An apple a day keeps the doctor away.", "The greatest wealth is health.", "Take care of your body. It's the only place you have to live.", "Health is not valued until sickness comes.", "Early to bed and early to rise makes a man healthy, wealthy, and wise."];
+  const healthQuotes = [
+    "An apple a day keeps the doctor away.",
+    "The greatest wealth is health.",
+    "Take care of your body. It's the only place you have to live.",
+    "Health is not valued until sickness comes.",
+    "Early to bed and early to rise makes a man healthy, wealthy, and wise."
+  ];
   const formattedDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  const hasData = currentIndex < reportCards.length;
+  const hasData = filteredReportCards.length > 0 && currentIndex < filteredReportCards.length;
 
   const InputGroup = ({ label, type, value, onChange, icon: Icon, disabled }) => {
     const [inputError, setInputError] = useState("");
@@ -232,172 +292,252 @@ const MyReportCard = () => {
             <h1 className="text-3xl font-bold tracking-tight">Digital Medical Report Card</h1>
           </div>
           <div className="p-6">
+            {/* Filter Section */}
+            <div className="bg-gray-50 rounded-xl shadow-md p-6 mb-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                  <svg className="w-5 h-5 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  Filter Report Cards
+                </h3>
+                <button
+                  onClick={() => setFilters({ date: '', doctorName: '' })}
+                  className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors flex items-center"
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Clear Filters
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="date"
+                      value={filters.date}
+                      onChange={handleFilterChange}
+                      placeholder="YYYY-MM-DD"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    />
+                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Doctor Name</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="doctorName"
+                      value={filters.doctorName}
+                      onChange={handleFilterChange}
+                      placeholder="Enter doctor name"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                    />
+                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {loading && <p className="text-gray-500">Loading...</p>}
             {error && <p className="text-red-500">{error}</p>}
             
-            <div ref={targetRef} className="pdf-content">
-              {/* Header */}
-              <div className="pdf-header flex justify-between items-center mb-6">
-                <div className="flex items-center">
-                  <img 
-                    className="w-36 cursor-pointer hover:opacity-80 transition-opacity" 
-                    src={assets.logo} 
-                    alt="Logo" 
-                  />
+            {filteredReportCards.length === 0 && !isEditing && !loading && (
+              <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                <div className="relative w-20 h-20 mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full blur-lg opacity-20"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">Generated on: {formattedDate}</div>
+                <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">
+                  No report cards found
+                </p>
+                <p className="text-base text-gray-500 mt-2">
+                  {filters.date || filters.doctorName
+                    ? "No report cards match your filters. Try adjusting the filters."
+                    : "You have no report cards. Create a new one by clicking 'Next'."}
+                </p>
               </div>
+            )}
 
-              {/* Patient Information */}
-              <div className="p-6 border border-gray-200 rounded-lg mb-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <UserIcon size={18} className="text-indigo-500 mr-2" />
-                  Patient Information
-                </h2>
-                <div className="text-gray-700">
-                  <span className="font-medium">Patient Name: </span>{userData ? userData.name : "Loading..."}
-                </div>
-              </div>
-              <hr className="my-6 border-gray-200" />
-
-              {/* Appointment Details */}
-              <div className="p-6 border border-gray-200 rounded-lg mb-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500 mr-2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                  </svg>
-                  Appointment Details
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <InputGroup 
-                    label="Appointment Date" 
-                    type="date" 
-                    value={date} 
-                    onChange={setDate} 
-                    icon={CalendarIcon} 
-                    disabled={!isEditing || isDoctorGenerated} 
-                  />
-                  <InputGroup 
-                    label="Doctor's Name" 
-                    value={doctorName} 
-                    icon={UserIcon} 
-                    disabled={true} 
-                  />
-                  <InputGroup 
-                    label="Appointment Time" 
-                    type="time" 
-                    value={appointmentTime} 
-                    onChange={setAppointmentTime} 
-                    icon={ClockIcon} 
-                    disabled={!isEditing || isDoctorGenerated} 
-                  />
-                </div>
-              </div>
-              <hr className="my-6 border-gray-200" />
-
-              {/* Medical Notes */}
-              <div className="p-6 border border-gray-200 rounded-lg mb-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500 mr-2">
-                    <line x1="22" y1="12" x2="2" y2="12"></line>
-                    <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-                    <line x1="6" y1="16" x2="6.01" y2="16"></line>
-                    <line x1="10" y1="16" x2="10.01" y2="16"></line>
-                  </svg>
-                  Medical Notes
-                </h2>
-                <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
-                  {isEditing && !isDoctorGenerated ? (
-                    <textarea
-                      className="w-full min-h-64 font-sans text-gray-700 rounded-lg bg-transparent outline-none resize-none"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="Enter medical notes here..."
-                      disabled={loading}
+            {(filteredReportCards.length > 0 || isEditing) && (
+              <div ref={targetRef} className="pdf-content">
+                {/* Header */}
+                <div className="pdf-header flex justify-between items-center mb-6">
+                  <div className="flex items-center">
+                    <img 
+                      className="w-36 cursor-pointer hover:opacity-80 transition-opacity" 
+                      src={assets.logo} 
+                      alt="Logo" 
                     />
-                  ) : (
-                    <div className="w-full min-h-64 font-sans text-gray-700">{content || "No notes available"}</div>
-                  )}
+                  </div>
+                  <div className="text-sm text-gray-600">Generated on: {formattedDate}</div>
+                </div>
+
+                {/* Patient Information */}
+                <div className="p-6 border border-gray-200 rounded-lg mb-6">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <UserIcon size={18} className="text-indigo-500 mr-2" />
+                    Patient Information
+                  </h2>
+                  <div className="text-gray-700">
+                    <span className="font-medium">Patient Name: </span>{userData ? userData.name : "Loading..."}
+                  </div>
+                </div>
+                <hr className="my-6 border-gray-200" />
+
+                {/* Appointment Details */}
+                <div className="p-6 border border-gray-200 rounded-lg mb-6">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500 mr-2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Appointment Details
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <InputGroup 
+                      label="Appointment Date" 
+                      type="date" 
+                      value={date} 
+                      onChange={setDate} 
+                      icon={CalendarIcon} 
+                      disabled={!isEditing || isDoctorGenerated} 
+                    />
+                    <InputGroup 
+                      label="Doctor's Name" 
+                      value={doctorName} 
+                      icon={UserIcon} 
+                      disabled={true} 
+                    />
+                    <InputGroup 
+                      label="Appointment Time" 
+                      type="time" 
+                      value={appointmentTime} 
+                      onChange={setAppointmentTime} 
+                      icon={ClockIcon} 
+                      disabled={!isEditing || isDoctorGenerated} 
+                    />
+                  </div>
+                </div>
+                <hr className="my-6 border-gray-200" />
+
+                {/* Medical Notes */}
+                <div className="p-6 border border-gray-200 rounded-lg mb-6">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500 mr-2">
+                      <line x1="22" y1="12" x2="2" y2="12"></line>
+                      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                      <line x1="6" y1="16" x2="6.01" y2="16"></line>
+                      <line x1="10" y1="16" x2="10.01" y2="16"></line>
+                    </svg>
+                    Medical Notes
+                  </h2>
+                  <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
+                    {isEditing && !isDoctorGenerated ? (
+                      <textarea
+                        className="w-full min-h-64 font-sans text-gray-700 rounded-lg bg-transparent outline-none resize-none"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        placeholder="Enter medical notes here..."
+                        disabled={loading}
+                      />
+                    ) : (
+                      <div className="w-full min-h-64 font-sans text-gray-700">{content || "No notes available"}</div>
+                    )}
+                  </div>
+                </div>
+                <hr className="my-6 border-gray-200" />
+
+                {/* Health Quote */}
+                <div className="p-6 border border-gray-200 rounded-lg mb-6">
+                  <p className="italic text-gray-700 text-base">{healthQuotes[currentIndex % healthQuotes.length]}</p>
+                </div>
+
+                {/* Footer */}
+                <div className="pdf-footer text-center text-gray-600 text-sm mt-8">
+                  This is an electronic report card generated from: Doctor Booking System | Report {currentIndex + 1} of {filteredReportCards.length || 1}
                 </div>
               </div>
-              <hr className="my-6 border-gray-200" />
-
-              {/* Health Quote */}
-              <div className="p-6 border border-gray-200 rounded-lg mb-6">
-                <p className="italic text-gray-700 text-base">{healthQuotes[currentIndex % healthQuotes.length]}</p>
-              </div>
-
-              {/* Footer */}
-              <div className="pdf-footer text-center text-gray-600 text-sm mt-8">
-                This is an electronic report card generated from: Doctor Booking System | Report {currentIndex + 1} of {reportCards.length || 1}
-              </div>
-            </div>
+            )}
 
             {/* UI Controls */}
-            <div className="no-print">
-              <div className="flex justify-center gap-4 mb-6">
-                {!isEditing && !isDoctorGenerated && (
-                  <button 
-                    onClick={handleEdit} 
-                    disabled={loading} 
-                    className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm hover:shadow"}`}
-                  >
-                    Edit
-                  </button>
-                )}
-                {isEditing && !isDoctorGenerated && (
-                  <>
+            {(filteredReportCards.length > 0 || isEditing) && (
+              <div className="no-print">
+                <div className="flex justify-center gap-4 mb-6">
+                  {!isEditing && !isDoctorGenerated && (
                     <button 
-                      onClick={hasData ? handleEdit : handleSave} 
+                      onClick={handleEdit} 
                       disabled={loading} 
-                      className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-500 text-white hover:bg-green-600 shadow-sm hover:shadow"}`}
+                      className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm hover:shadow"}`}
                     >
-                      {hasData ? "Save Changes" : "Save"}
+                      Edit
                     </button>
+                  )}
+                  {isEditing && !isDoctorGenerated && (
+                    <>
+                      <button 
+                        onClick={hasData ? handleEdit : handleSave} 
+                        disabled={loading} 
+                        className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-500 text-white hover:bg-green-600 shadow-sm hover:shadow"}`}
+                      >
+                        {hasData ? "Save Changes" : "Save"}
+                      </button>
+                      <button 
+                        onClick={handleCancel} 
+                        disabled={loading} 
+                        className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-red-100 text-red-600 hover:bg-red-200 border border-red-200"}`}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  )}
+                  {hasData && (
                     <button 
-                      onClick={handleCancel} 
+                      onClick={handleDownloadPDF} 
                       disabled={loading} 
-                      className={`px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-red-100 text-red-600 hover:bg-red-200 border border-red-200"}`}
+                      className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow"}`}
                     >
-                      Cancel
+                      <DownloadIcon size={18} />
+                      <span>Download PDF</span>
                     </button>
-                  </>
-                )}
-                {hasData && (
-                  <button 
-                    onClick={handleDownloadPDF} 
-                    disabled={loading} 
-                    className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow"}`}
-                  >
-                    <DownloadIcon size={18} />
-                    <span>Download PDF</span>
-                  </button>
-                )}
-              </div>
+                  )}
+                </div>
 
-              <div className="flex items-center justify-between">
-                <button 
-                  onClick={() => navigate("prev")} 
-                  disabled={currentIndex === 0 || loading} 
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${currentIndex === 0 || loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 shadow-sm hover:shadow"}`}
-                >
-                  <ChevronLeftIcon />
-                  <span>Previous</span>
-                </button>
-                <button 
-                  onClick={() => navigate("next")} 
-                  disabled={loading} 
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"}`}
-                >
-                  <span>Next</span>
-                  <ChevronRightIcon />
-                </button>
+                <div className="flex items-center justify-between">
+                  <button 
+                    onClick={() => navigate("prev")} 
+                    disabled={currentIndex === 0 || loading} 
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${currentIndex === 0 || loading ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white text-indigo-600 hover:bg-indigo-50 border border-indigo-200 shadow-sm hover:shadow"}`}
+                  >
+                    <ChevronLeftIcon />
+                    <span>Previous</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate("next")} 
+                    disabled={loading || (currentIndex === filteredReportCards.length - 1 && !isEditing)} 
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${(loading || (currentIndex === filteredReportCards.length - 1 && !isEditing)) ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm hover:shadow"}`}
+                  >
+                    <span>Next</span>
+                    <ChevronRightIcon />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
