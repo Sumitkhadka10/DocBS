@@ -3,6 +3,7 @@ import { assets } from "../assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
 import NotificationDropdown from "../pages/NotificationDropdown.jsx";
+import { toast } from 'react-toastify'; // Already imported
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Navbar = () => {
     setToken(false);
     localStorage.removeItem("token");
     navigate("/login");
+    toast.success("Logout Successfully"); // Add toast notification
   };
 
   return (
@@ -187,7 +189,7 @@ const Navbar = () => {
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 01-3-3h4a3 3 0 013 3v1"
                           />
                         </svg>
                         Logout
