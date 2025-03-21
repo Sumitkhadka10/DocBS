@@ -36,8 +36,8 @@ const Navbar = () => {
             className={({ isActive }) =>
               `px-4 py-2 rounded-lg transition-colors ${
                 isActive
-                  ? "text-indigo-700 font-medium border-b-2 border-indigo-500"
-                  : "hover:text-indigo-600 text-gray-700"
+                  ? "text-primary font-medium border-b-2 border-primary"
+                  : "hover:text-primary text-gray-700"
               }`
             }
           >
@@ -48,8 +48,8 @@ const Navbar = () => {
             className={({ isActive }) =>
               `px-4 py-2 rounded-lg transition-colors ${
                 isActive
-                  ? "text-indigo-700 font-medium border-b-2 border-indigo-500"
-                  : "hover:text-indigo-600 text-gray-700"
+                  ? "text-primary font-medium border-b-2 border-primary"
+                  : "hover:text-primary text-gray-700"
               }`
             }
           >
@@ -60,8 +60,8 @@ const Navbar = () => {
             className={({ isActive }) =>
               `px-4 py-2 rounded-lg transition-colors ${
                 isActive
-                  ? "text-indigo-700 font-medium border-b-2 border-indigo-500"
-                  : "hover:text-indigo-600 text-gray-700"
+                  ? "text-primary font-medium border-b-2 border-primary"
+                  : "hover:text-primary text-gray-700"
               }`
             }
           >
@@ -72,8 +72,8 @@ const Navbar = () => {
             className={({ isActive }) =>
               `px-4 py-2 rounded-lg transition-colors ${
                 isActive
-                  ? "text-indigo-700 font-medium border-b-2 border-indigo-500"
-                  : "hover:text-indigo-600 text-gray-700"
+                  ? "text-primary font-medium border-b-2 border-primary"
+                  : "hover:text-primary text-gray-700"
               }`
             }
           >
@@ -95,7 +95,7 @@ const Navbar = () => {
               <div className="relative group">
                 <div className="flex items-center gap-2 p-2 rounded-full cursor-pointer hover:bg-gray-50 transition-colors">
                   <img
-                    className="w-8 h-8 rounded-full object-cover border-2 border-indigo-100"
+                    className="w-8 h-8 rounded-full object-cover border-2 border-primary/20"
                     src={userData.image}
                     alt="User"
                   />
@@ -118,7 +118,7 @@ const Navbar = () => {
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-indigo-500"
+                          className="h-4 w-4 text-primary"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -138,7 +138,7 @@ const Navbar = () => {
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-indigo-500"
+                          className="h-4 w-4 text-primary"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -158,7 +158,7 @@ const Navbar = () => {
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 text-indigo-500"
+                          className="h-4 w-4 text-primary"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -200,7 +200,7 @@ const Navbar = () => {
           ) : (
             <button
               onClick={() => navigate("/login")}
-              className="hidden md:flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full font-medium text-sm transition-colors shadow-md hover:shadow-lg"
+              className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary/80 text-white px-5 py-2 rounded-full font-medium text-sm transition-colors shadow-md hover:shadow-lg"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -261,7 +261,7 @@ const Navbar = () => {
             className={({ isActive }) =>
               `block w-full text-left px-3 py-3 rounded-md mb-1 ${
                 isActive
-                  ? "text-indigo-700 border-l-4 border-indigo-500 pl-2"
+                  ? "text-primary border-l-4 border-primary pl-2"
                   : "text-gray-700 hover:bg-gray-50"
               }`
             }
@@ -274,7 +274,7 @@ const Navbar = () => {
             className={({ isActive }) =>
               `block w-full text-left px-3 py-3 rounded-md mb-1 ${
                 isActive
-                  ? "text-indigo-700 border-l-4 border-indigo-500 pl-2"
+                  ? "text-primary border-l-4 border-primary pl-2"
                   : "text-gray-700 hover:bg-gray-50"
               }`
             }
@@ -287,7 +287,7 @@ const Navbar = () => {
             className={({ isActive }) =>
               `block w-full text-left px-3 py-3 rounded-md mb-1 ${
                 isActive
-                  ? "text-indigo-700 border-l-4 border-indigo-500 pl-2"
+                  ? "text-primary border-l-4 border-primary pl-2"
                   : "text-gray-700 hover:bg-gray-50"
               }`
             }
@@ -300,7 +300,7 @@ const Navbar = () => {
             className={({ isActive }) =>
               `block w-full text-left px-3 py-3 rounded-md mb-1 ${
                 isActive
-                  ? "text-indigo-700 border-l-4 border-indigo-500 pl-2"
+                  ? "text-primary border-l-4 border-primary pl-2"
                   : "text-gray-700 hover:bg-gray-50"
               }`
             }
@@ -315,7 +315,7 @@ const Navbar = () => {
               className={({ isActive }) =>
                 `block w-full text-left px-3 py-3 rounded-md mb-1 flex items-center gap-2 ${
                   isActive
-                    ? "text-indigo-700 border-l-4 border-indigo-500 pl-2"
+                    ? "text-primary border-l-4 border-primary pl-2"
                     : "text-gray-700 hover:bg-gray-50"
                 }`
               }
@@ -342,7 +342,7 @@ const Navbar = () => {
             <NavLink
               to="/login"
               onClick={() => setShowMenu(false)}
-              className="flex items-center justify-center gap-2 mt-4 bg-indigo-600 text-white px-4 py-3 rounded-md"
+              className="flex items-center justify-center gap-2 mt-4 bg-primary hover:bg-primary/80 text-white px-4 py-3 rounded-md"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
