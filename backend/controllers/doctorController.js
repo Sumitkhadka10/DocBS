@@ -2,7 +2,7 @@ import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
-import reportCardModel from "../models/reportCard.js"; // Added import
+import reportCardModel from "../models/ReportCard.js"; // Ensure this matches the casing
 
 const changeAvailability = async (req, res) => {
   try {
