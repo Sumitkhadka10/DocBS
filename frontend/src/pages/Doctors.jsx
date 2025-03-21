@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; 
 import { AppContext } from '../context/AppContext';
+import SpecialityMenu from '../components/SpecialityMenu';
 
 const Doctors = () => {
   const { speciality } = useParams();
@@ -18,6 +19,8 @@ const Doctors = () => {
       filtered.sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1));
     } else if (sortOption === 'unavailability') {
       filtered.sort((a, b) => (a.available === b.available ? 0 : a.available ? 1 : -1));
+    } else if (sortOption === 'all') {
+      navigate('/doctors');
     }
 
     setFilterDoc(filtered);
@@ -27,109 +30,80 @@ const Doctors = () => {
     applyFilterAndSort();
   }, [doctors, speciality, sortOption]);
 
-  const specialities = [
-    'General physician',
-    'Gynecologist',
-    'Dermatologist',
-    'Pediatricians',
-    'Neurologist',
-    'Gastroenterologist'
-  ];
-
   const handleSortChange = (option) => {
     setSortOption(option);
+    if (option === 'all') {
+      navigate('/doctors');
+    }
   };
+  
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Header */}
-      <div className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <h1 className="text-3xl font-bold text-gray-900 hover:text-primary transition-colors">
-            Expert Medical Professionals
+      <header className="bg-white/95 backdrop-blur-md shadow-sm py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 hover:text-primary transition-colors duration-300">
+            Find Your <span className="text-primary">Specialist</span>
           </h1>
-          <p className="mt-2 text-gray-600 hover:text-gray-700 transition-colors">
-            Connect with leading medical specialists committed to providing exceptional care and personalized treatment.
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg hover:opacity-90 transition-opacity">
+            Discover top medical professionals tailored to your needs.
           </p>
         </div>
-      </div>
+      </header>
 
-      {/* Specialty Navigation */}
-      <div className="bg-white border-y border-slate-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center overflow-x-auto py-4 no-scrollbar">
-            <button
-              onClick={() => navigate('/doctors')}
-              className={`whitespace-nowrap mr-3 px-5 py-2.5 rounded-md text-sm font-medium transition-all ${
-                !speciality
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700'
-              }`}
-            >
-              All Specialists
-            </button>
-            {specialities.map((spec) => (
-              <button
-                key={spec}
-                onClick={() => (speciality === spec ? navigate('/doctors') : navigate(`/doctors/${spec}`))}
-                className={`whitespace-nowrap mr-3 px-5 py-2.5 rounded-md text-sm font-medium transition-all ${
-                  speciality === spec
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-700'
-                }`}
-              >
-                {spec}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Speciality Menu - Always Visible */}
+      <section className="py-4">
+        <SpecialityMenu hideTitles={false} currentSpeciality={speciality} />
+      </section>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 hover:text-primary transition-colors">
-              {speciality || 'All Specialists'}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {/* Filters and Title */}
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+          <div className="text-center sm:text-left">
+            <h2 className="text-2xl font-semibold text-gray-900">
+              {speciality ? `${speciality} Specialists` : 'All Specialists'}
             </h2>
-            <div className="flex items-center mt-2">
-              <span className="inline-flex items-center justify-center bg-primary/10 text-primary text-sm px-3 py-1 rounded-md font-medium">
-                {filterDoc.length} {filterDoc.length === 1 ? 'Professional' : 'Professionals'}
-              </span>
-            </div>
+            <span className="mt-1 inline-block bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-full font-medium">
+              {filterDoc.length} {filterDoc.length === 1 ? 'Doctor' : 'Doctors'}
+            </span>
           </div>
-          
-          <div className="relative w-full sm:w-auto">
-            <div className="flex items-center">
-              <span className="text-sm text-gray-600 mr-3 font-medium hover:text-gray-700">Sort by:</span>
-              <select
-                value={sortOption}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="flex-grow sm:flex-grow-0 bg-white border border-gray-300 text-gray-600 text-sm py-2.5 pl-4 pr-10 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary hover:text-gray-700"
-              >
-                <option value="default">Default</option>
-                <option value="availability">Available First </option>
-                <option value="unavailability">Unavailable First </option>
-              </select>
-              <svg
-                className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none text-gray-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-            </div>
+          {speciality && (
+            <button
+              onClick={() => navigate('/doctors')}
+              className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-all text-sm font-medium shadow-sm"
+            >
+              View All Specialties
+            </button>
+          )}
+          <div className="relative">
+            <select
+              value={sortOption}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="appearance-none bg-white border border-gray-200 text-gray-700 text-sm py-2.5 pl-4 pr-10 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 transition-all"
+            >
+              <option value="default">Sort: Default</option>
+              <option value="availability">Sort: Available First</option>
+              <option value="unavailability">Sort: Unavailable First</option>
+              <option value="all">All Specialists</option>
+            </select>
+            <svg
+              className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
         </div>
 
-        {/* Doctor Grid */}
+        {/* Doctor Grid or Empty State */}
         {filterDoc.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-16 text-center">
-            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg p-10 text-center border border-gray-100">
+            <div className="mx-auto w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
               <svg
-                xmlns="http://www.w3.org/2000/svg"
                 className="h-8 w-8 text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -143,71 +117,62 @@ const Doctors = () => {
                 />
               </svg>
             </div>
-            <p className="text-gray-900 text-xl font-medium hover:text-primary transition-colors">No specialists found</p>
-            <p className="text-gray-600 text-sm mt-2 max-w-md mx-auto hover:text-gray-700">We couldn't find any specialists in this category. Try selecting a different specialty or view all specialists.</p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Doctors Found</h3>
+            <p className="text-gray-600 text-sm max-w-md mx-auto">
+              No specialists match your criteria. Explore other specialties or view all doctors.
+            </p>
             <button
               onClick={() => navigate('/doctors')}
-              className="mt-6 px-6 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition font-medium text-sm shadow-sm"
+              className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all shadow-md font-medium"
             >
-              View All Specialists
+              Browse All Doctors
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {filterDoc.map((doctor, index) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filterDoc.map((doctor) => (
               <div
-                key={index}
-                className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all hover:shadow-md hover:border-gray-300"
+                key={doctor._id}
+                className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
-                {/* Doctor Image with Container */}
-                <div 
-                  className="relative h-64 bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer"
+                <div
+                  className="relative h-52 flex items-center justify-center bg-blue-50 cursor-pointer overflow-hidden rounded-t-2xl"
                   onClick={() => navigate(`/appointment/${doctor._id}`)}
                 >
                   <img
                     src={doctor.image}
                     alt={doctor.name}
-                    className="w-3/4 h-3/4 object-contain transition-transform duration-300 group-hover:scale-105"
+                    className="w-2/3 h-2/3 object-contain transition-transform duration-300 hover:scale-105"
                   />
-                  <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start">
-                    <span
-                      className={`px-3 py-1.5 text-xs font-medium rounded-md ${
-                        doctor.available
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {doctor.available ? 'Available' : 'Unavailable'}
-                    </span>
-                  </div>
+                  <span
+                    className={`absolute top-3 left-3 px-2.5 py-1 text-xs font-medium rounded-full ${
+                      doctor.available ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {doctor.available ? 'Available' : 'Unavailable'}
+                  </span>
                 </div>
-                
-                {/* Doctor Info */}
-                <div className="p-6">
-                  <h3 
-                    className="text-gray-900 font-semibold text-lg cursor-pointer hover:text-primary transition-colors"
+                <div className="p-5">
+                  <h3
+                    className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors"
                     onClick={() => navigate(`/appointment/${doctor._id}`)}
                   >
                     {doctor.name}
                   </h3>
-                  <div className="flex items-center mt-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mr-2"></div>
-                    <p className="text-gray-600 text-sm font-medium hover:text-gray-700">{doctor.speciality}</p>
-                  </div>
-                  
-                  <div className="mt-6 pt-5 border-t border-gray-100 flex justify-between items-center">
-                    <span className="text-xs text-gray-500 font-medium hover:text-gray-600">
-                      {doctor.available ? 'Accepting new patients' : 'Not accepting patients'}
+                  <p className="text-sm text-gray-600 mt-1">{doctor.speciality}</p>
+                  <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <span className="text-xs text-gray-500">
+                      {doctor.available ? 'Accepting Patients' : 'Not Accepting'}
                     </span>
                     <button
                       onClick={() => doctor.available && navigate(`/appointment/${doctor._id}`)}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all ${
                         doctor.available
-                          ? 'bg-primary text-white hover:bg-primary/90'
-                          : 'bg-gray-100 text-gray-600 cursor-not-allowed'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                          : 'bg-gray-100 text-gray-500 cursor-not-allowed'
                       }`}
                     >
-                      {doctor.available ? 'Book' : 'Unavailable'}
+                      {doctor.available ? 'Book Now' : 'Unavailable'}
                     </button>
                   </div>
                 </div>
@@ -215,7 +180,7 @@ const Doctors = () => {
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };
