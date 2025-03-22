@@ -8,7 +8,7 @@ const Notifications = () => {
   const { backendUrl, token, userData } = useContext(AppContext);
   const [notifications, setNotifications] = useState([]);
   const [socket, setSocket] = useState(null);
-  const [filter, setFilter] = useState("all"); // "all", "unread", "read"
+  const [filter, setFilter] = useState("all");
 
   const fetchNotifications = async () => {
     try {
@@ -118,7 +118,7 @@ const Notifications = () => {
 
       newSocket.on("newNotification", (notification) => {
         setNotifications((prev) => [notification, ...prev]);
-        
+
         toast.info(
           <div className="flex items-center">
             <div className="mr-2">
@@ -144,20 +144,18 @@ const Notifications = () => {
     }
   }, [token, userData]);
 
-  // Filter notifications based on selected filter
   const filteredNotifications = notifications.filter(notification => {
     if (filter === "unread") return !notification.isRead;
     if (filter === "read") return notification.isRead;
-    return true; // "all" filter
+    return true;
   });
 
-  // Helper function to format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffTime = now - date;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) {
       return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     } else if (diffDays === 1) {
@@ -184,36 +182,33 @@ const Notifications = () => {
         <div className="flex space-x-2">
           <button
             onClick={() => setFilter("all")}
-            className={`px-4 py-2 text-sm rounded-full transition-colors duration-300 ${
-              filter === "all" 
-                ? "bg-primary/10 text-primary font-semibold" 
-                : "text-gray-600 hover:bg-primary/5 hover:text-primary"
-            }`}
+            className={`px-4 py-2 text-sm rounded-full transition-colors duration-300 ${filter === "all"
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-gray-600 hover:bg-primary/5 hover:text-primary"
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter("unread")}
-            className={`px-4 py-2 text-sm rounded-full transition-colors duration-300 ${
-              filter === "unread" 
-                ? "bg-primary/10 text-primary font-semibold" 
-                : "text-gray-600 hover:bg-primary/5 hover:text-primary"
-            }`}
+            className={`px-4 py-2 text-sm rounded-full transition-colors duration-300 ${filter === "unread"
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-gray-600 hover:bg-primary/5 hover:text-primary"
+              }`}
           >
             Unread
           </button>
           <button
             onClick={() => setFilter("read")}
-            className={`px-4 py-2 text-sm rounded-full transition-colors duration-300 ${
-              filter === "read" 
-                ? "bg-primary/10 text-primary font-semibold" 
-                : "text-gray-600 hover:bg-primary/5 hover:text-primary"
-            }`}
+            className={`px-4 py-2 text-sm rounded-full transition-colors duration-300 ${filter === "read"
+              ? "bg-primary/10 text-primary font-semibold"
+              : "text-gray-600 hover:bg-primary/5 hover:text-primary"
+              }`}
           >
             Read
           </button>
         </div>
-        
+
         {notifications.some(n => !n.isRead) && (
           <button
             onClick={markAllAsRead}
@@ -235,10 +230,10 @@ const Notifications = () => {
             No notifications found
           </h3>
           <p className="text-gray-600 text-sm hover:text-gray-700 transition-colors duration-300">
-            {filter === "all" 
+            {filter === "all"
               ? "You don't have any notifications yet."
-              : filter === "unread" 
-                ? "You don't have any unread notifications." 
+              : filter === "unread"
+                ? "You don't have any unread notifications."
                 : "You don't have any read notifications."}
           </p>
         </div>
@@ -247,9 +242,8 @@ const Notifications = () => {
           {filteredNotifications.map((notification) => (
             <div
               key={notification._id}
-              className={`flex p-4 transition-colors duration-300 hover:bg-primary/5 ${
-                !notification.isRead ? "bg-primary/10" : ""
-              }`}
+              className={`flex p-4 transition-colors duration-300 hover:bg-primary/5 ${!notification.isRead ? "bg-primary/10" : ""
+                }`}
             >
               <div className="mr-4 flex-shrink-0">
                 {getNotificationIcon(notification.type || "default")}
