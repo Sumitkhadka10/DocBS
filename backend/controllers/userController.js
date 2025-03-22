@@ -9,7 +9,6 @@ import reportCardModel from "../models/ReportCard.js";
 import notificationModel from "../models/notificationModel.js";
 import { scheduleJob } from "node-schedule";
 
-// API to register user
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -49,7 +48,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-// API for user login
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -72,7 +70,6 @@ const loginUser = async (req, res) => {
   }
 };
 
-// API to get user profile data
 const getProfile = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -84,7 +81,6 @@ const getProfile = async (req, res) => {
   }
 };
 
-// API to update user profile data
 const updateProfile = async (req, res) => {
   try {
     const { userId, name, phone, address, dob, gender } = req.body;
@@ -117,7 +113,6 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// Function to create and schedule notifications with WebSocket
 const createNotification = async (req, userId, appointmentId, slotDate, slotTime, docName) => {
   const [day, month, year] = slotDate.split('_');
   const appointmentDateTime = new Date(`${year}-${month}-${day} ${slotTime}`);
@@ -126,12 +121,11 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
 
   let notificationTime;
   if (minutesDiff <= 10) {
-    notificationTime = new Date(); // Immediate notification
+    notificationTime = new Date();
   } else {
-    notificationTime = new Date(appointmentDateTime - 15 * 60 * 1000); // 15 minutes before
+    notificationTime = new Date(appointmentDateTime - 15 * 60 * 1000);
   }
 
-  // Immediate confirmation notification
   const message = `Reminder: Your appointment with Dr. ${docName} is scheduled for ${slotTime} on ${day}/${month}/${year}.`;
   const notification = new notificationModel({
     userId,
@@ -140,8 +134,7 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
   });
   await notification.save();
 
-  // Schedule the reminder notification
-  const io = req.app.get("io"); // Access Socket.IO instance
+  const io = req.app.get("io");
   scheduleJob(notificationTime, async () => {
     const reminderMessage = `Upcoming: Your appointment with Dr. ${docName} is in 15 minutes at ${slotTime} on ${day}/${month}/${year}.`;
     const reminderNotification = new notificationModel({
@@ -151,7 +144,6 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
     });
     await reminderNotification.save();
 
-    // Emit the reminder to the user's WebSocket room
     io.to(userId).emit("newNotification", {
       _id: reminderNotification._id,
       message: reminderNotification.message,
@@ -164,7 +156,6 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
   return notification;
 };
 
-// API to book appointment
 const bookAppointment = async (req, res) => {
   try {
     const { userId, docId, slotDate, slotTime } = req.body;
@@ -203,7 +194,6 @@ const bookAppointment = async (req, res) => {
 
     await doctorModel.findByIdAndUpdate(docId, { slots_booked: slotsBooked });
 
-    // Creating notification with WebSocket support
     await createNotification(req, userId, newAppointment._id, slotDate, slotTime, docData.name);
 
     res.json({ success: true, message: "Appointment Booked Successfully" });
@@ -213,7 +203,6 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-// API to get user appointments
 const listAppointment = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -225,7 +214,6 @@ const listAppointment = async (req, res) => {
   }
 };
 
-// API to cancel appointment
 const cancelAppointment = async (req, res) => {
   try {
     const { userId, appointmentId } = req.body;
@@ -250,7 +238,6 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
-// API to save report card
 const saveReportCard = async (req, res) => {
   try {
     const { userId, date, doctorName, appointmentTime, content, page } = req.body;
@@ -281,7 +268,6 @@ const saveReportCard = async (req, res) => {
   }
 };
 
-// API to update report card
 const updateReportCard = async (req, res) => {
   try {
     const { userId, date, doctorName, appointmentTime, content, page } = req.body;
@@ -307,7 +293,6 @@ const updateReportCard = async (req, res) => {
   }
 };
 
-// API to get all report cards for a user
 const getReportCards = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -319,7 +304,6 @@ const getReportCards = async (req, res) => {
   }
 };
 
-// API to get user notifications
 const getNotifications = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -334,7 +318,6 @@ const getNotifications = async (req, res) => {
   }
 };
 
-// API to mark notification as read
 const markNotificationRead = async (req, res) => {
   try {
     const { userId, notificationId } = req.body;
@@ -347,7 +330,6 @@ const markNotificationRead = async (req, res) => {
       return res.json({ success: false, message: "Notification not found" });
     }
 
-    // Emit WebSocket event to update unread count
     const io = req.app.get("io");
     io.to(userId).emit("notificationRead");
 
@@ -358,8 +340,24 @@ const markNotificationRead = async (req, res) => {
   }
 };
 
+const markAllAsRead = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    await notificationModel.updateMany(
+      { userId, isRead: false },
+      { isRead: true }
+    );
+    const io = req.app.get("io");
+    io.to(userId).emit("notificationRead");
+    res.json({ success: true, message: "All notifications marked as read" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export { 
   registerUser, loginUser, getProfile, updateProfile, bookAppointment, 
   listAppointment, cancelAppointment, saveReportCard, getReportCards, 
-  updateReportCard, getNotifications, markNotificationRead 
+  updateReportCard, getNotifications, markNotificationRead, markAllAsRead 
 };
