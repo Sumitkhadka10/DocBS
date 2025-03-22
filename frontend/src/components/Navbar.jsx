@@ -3,7 +3,7 @@ import { assets } from "../assets/assets";
 import { NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext.jsx";
 import NotificationDropdown from "../pages/NotificationDropdown.jsx";
-import { toast } from 'react-toastify'; // Already imported
+import { toast } from 'react-toastify'; 
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ const Navbar = () => {
     setToken(false);
     localStorage.removeItem("token");
     navigate("/login");
-    toast.success("Logout Successfully"); // Add toast notification
+    toast.success("Logout Successfully"); 
   };
 
   return (
