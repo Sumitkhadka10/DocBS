@@ -4,7 +4,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { Bell, FileText, Calendar } from "lucide-react";
 
 const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   const { token, userData, backendUrl } = useContext(AppContext);
@@ -13,21 +13,26 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   const [socket, setSocket] = useState(null);
   const navigate = useNavigate();
 
+  // Fetch notifications from the backend
   const fetchNotifications = async () => {
     if (!token) return;
     try {
       const { data } = await axios.get(`${backendUrl}/api/user/notifications`, {
-        headers: { token }
+        headers: { token },
       });
       if (data.success) {
         setNotifications(data.notifications);
-        setUnreadCount(data.notifications.filter(n => !n.isRead).length);
+        setUnreadCount(data.notifications.filter((n) => !n.isRead).length);
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       console.error(error);
+      toast.error(error.message || "Failed to fetch notifications");
     }
   };
 
+  // Mark a single notification as read
   const markAsRead = async (notificationId) => {
     try {
       const { data } = await axios.post(
@@ -36,50 +41,21 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
         { headers: { token } }
       );
       if (data.success) {
-        setNotifications(prev => 
-          prev.map(n => n._id === notificationId ? { ...n, isRead: true } : n)
+        setNotifications((prev) =>
+          prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
         );
-        setUnreadCount(prev => prev > 0 ? prev - 1 : 0);
+        setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+        toast.success("Notification marked as read");
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to mark as read");
+      toast.error(error.message || "Failed to mark notification as read");
     }
   };
 
-  useEffect(() => {
-    if (!token || !userData) {
-      setNotifications([]);
-      setUnreadCount(0);
-      return;
-    }
-    
-    fetchNotifications();
-    const newSocket = io(backendUrl, { auth: { token } });
-    setSocket(newSocket);
-    
-    newSocket.emit("joinRoom", userData._id);
-    
-    newSocket.on("newNotification", (notification) => {
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
-      toast.info(notification.message, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: true,
-        closeOnClick: true,
-        pauseOnHover: true,
-        className: "bg-white shadow-lg rounded-lg border border-gray-200",
-      });
-    });
-    
-    newSocket.on("notificationRead", () => {
-      setUnreadCount(prev => prev > 0 ? prev - 1 : 0);
-    });
-    
-    return () => newSocket.disconnect();
-  }, [token, userData, backendUrl]);
-
+  // Format timestamp for display
   const formatTimestamp = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -89,18 +65,147 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     const diffDay = Math.floor(diffHr / 24);
 
     if (diffMin < 1) return "Just now";
-    if (diffMin < 60) return `${diffMin}m`;
-    if (diffHr < 24) return `${diffHr}h`;
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHr < 24) return `${diffHr}h ago`;
     if (diffDay === 1) return "Yesterday";
-    if (diffDay < 7) return `${diffDay}d`;
+    if (diffDay < 7) return `${diffDay}d ago`;
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
+  // Custom toast component for report card notification
+  const ReportCardToast = ({ message, appointmentId, closeToast }) => {
+    const navigate = useNavigate();
+
+    return (
+      <div className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-md border border-gray-200 max-w-sm">
+        <FileText className="w-6 h-6 text-blue-500 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900">New Report Card Available</p>
+          <p className="text-sm text-gray-600 mt-1">{message}</p>
+          {appointmentId && (
+            <p className="text-xs text-gray-500 mt-1">Appointment ID: {appointmentId}</p>
+          )}
+          <div className="mt-2 flex space-x-2">
+            <button
+              onClick={() => {
+                navigate(`/my-report-card`);
+                closeToast();
+              }}
+              className="text-xs font-medium text-blue-600 hover:text-blue-800 underline transition-colors duration-200"
+            >
+              View Report
+            </button>
+            <button
+              onClick={closeToast}
+              className="text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Custom toast component for appointment reminder
+  const AppointmentReminderToast = ({ message, appointmentId, closeToast }) => {
+    const navigate = useNavigate();
+
+    return (
+      <div className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-md border border-gray-200 max-w-sm">
+        <Calendar className="w-6 h-6 text-green-500 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900">Appointment Reminder</p>
+          <p className="text-sm text-gray-600 mt-1">{message}</p>
+          {appointmentId && (
+            <p className="text-xs text-gray-500 mt-1">Appointment ID: {appointmentId}</p>
+          )}
+          <div className="mt-2 flex space-x-2">
+            <button
+              onClick={() => {
+                navigate(`/my-appointments`); 
+                closeToast();
+              }}
+              className="text-xs font-medium text-green-600 hover:text-green-800 underline transition-colors duration-200"
+            >
+              View Details
+            </button>
+            <button
+              onClick={closeToast}
+              className="text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Set up WebSocket and handle real-time toast notifications
+  useEffect(() => {
+    if (!token || !userData) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+
+    // Fetch initial notifications when dropdown opens
+    if (isOpen) {
+      fetchNotifications();
+    }
+
+    // Initialize WebSocket connection
+    const newSocket = io(backendUrl, { auth: { token } });
+    setSocket(newSocket);
+
+    // Join user's room based on userId
+    newSocket.emit("joinRoom", userData._id);
+
+    // Listen for new notifications and show appropriate toast
+    newSocket.on("newNotification", (notification) => {
+      setUnreadCount((prev) => prev + 1); // Update unread count only
+
+      // Determine the notification type and render the appropriate toast
+      const isAppointmentReminder = notification.type === "appointment_reminder"; // Adjust based on your backend data
+      const ToastComponent = isAppointmentReminder ? AppointmentReminderToast : ReportCardToast;
+
+      toast(
+        <ToastComponent
+          message={notification.message}
+          appointmentId={notification.appointmentId}
+        />,
+        {
+          position: "top-right",
+          autoClose: 7000, // Longer duration for interaction
+          hideProgressBar: true,
+          closeOnClick: false, // Allow clicking actions without closing
+          pauseOnHover: true,
+          className: "bg-transparent p-0", // Remove default padding/background
+          bodyClassName: "flex items-start",
+        }
+      );
+    });
+
+    // Listen for notification read events
+    newSocket.on("notificationRead", () => {
+      setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+    });
+
+    // Cleanup on unmount
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [token, userData, backendUrl, isOpen, navigate]);
+
   return (
     <div className="relative">
-      {/* Bell Icon with Badge */}
+      {/* Notification Bell Icon */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          setIsOpen(!isOpen);
+          if (!isOpen) fetchNotifications(); // Fetch notifications when opening
+        }}
         className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-300 relative"
       >
         <Bell className="h-6 w-6 text-gray-600 hover:text-primary transition-colors duration-300" />
@@ -119,14 +224,14 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
               Notifications
             </h3>
           </div>
-          
+
           {notifications.length === 0 ? (
             <div className="p-4 text-center text-gray-600 text-sm hover:text-gray-700 transition-colors duration-300">
               No notifications
             </div>
           ) : (
             notifications.map((notification) => (
-              <NotificationItem 
+              <NotificationItem
                 key={notification._id}
                 notification={notification}
                 markAsRead={markAsRead}
@@ -134,7 +239,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
               />
             ))
           )}
-          
+
           <div className="p-3 text-center">
             <button
               onClick={() => {
@@ -152,18 +257,22 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   );
 };
 
-// Extracted notification item component
+// Notification Item Component
 const NotificationItem = ({ notification, markAsRead, formatTimestamp }) => (
   <div
     className={`flex items-center p-3 border-b border-gray-100 hover:bg-primary/5 transition-colors duration-300 ${
       !notification.isRead ? "bg-primary/10" : ""
     }`}
   >
-    {!notification.isRead && (
-      <div className="w-2 h-2 bg-primary rounded-full mr-2" />
-    )}
+    {!notification.isRead && <div className="w-2 h-2 bg-primary rounded-full mr-2" />}
     <div className="flex-1">
-      <p className={`text-sm ${notification.isRead ? "text-gray-600 hover:text-gray-700" : "text-gray-900 font-semibold hover:text-primary"} transition-colors duration-300`}>
+      <p
+        className={`text-sm ${
+          notification.isRead
+            ? "text-gray-600 hover:text-gray-700"
+            : "text-gray-900 font-semibold hover:text-primary"
+        } transition-colors duration-300`}
+      >
         {notification.message}
       </p>
       <p className="text-xs text-gray-600 mt-1 hover:text-gray-700 transition-colors duration-300">
