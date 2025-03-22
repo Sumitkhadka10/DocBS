@@ -2,7 +2,8 @@ import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
-import reportCardModel from "../models/ReportCard.js"; // Ensure this matches the casing
+import reportCardModel from "../models/ReportCard.js";
+import notificationModel from "../models/notificationModel.js"; // Added for notifications
 
 const changeAvailability = async (req, res) => {
   try {
@@ -142,7 +143,6 @@ const doctorDashboard = async (req, res) => {
   }
 };
 
-// New API to get a patient's report card by appointment ID
 const getPatientReportCard = async (req, res) => {
   try {
     const { docId, appointmentId } = req.body;
@@ -162,7 +162,6 @@ const getPatientReportCard = async (req, res) => {
   }
 };
 
-// New API to save or update a patient's report card
 const saveOrUpdatePatientReportCard = async (req, res) => {
   try {
     const { docId, appointmentId, date, doctorName, appointmentTime, content } = req.body;
@@ -182,7 +181,6 @@ const saveOrUpdatePatientReportCard = async (req, res) => {
         { date, doctorName, appointmentTime, content },
         { new: true }
       );
-      res.json({ success: true, message: "Report card updated successfully", reportCard });
     } else {
       // Create new report card
       reportCard = new reportCardModel({
@@ -195,8 +193,31 @@ const saveOrUpdatePatientReportCard = async (req, res) => {
         page: 1, // Default page for doctor-created reports
       });
       await reportCard.save();
-      res.json({ success: true, message: "Report card created successfully", reportCard });
     }
+
+    // Create a notification for the user
+    const notificationMessage = `Your medical report from Dr. ${doctorName} for your appointment on ${date} at ${appointmentTime} is now available.`;
+    const notification = new notificationModel({
+      userId,
+      appointmentId,
+      message: notificationMessage,
+    });
+    await notification.save();
+
+    // Emit the notification via WebSocket
+    const io = req.app.get("io");
+    io.to(userId).emit("newNotification", {
+      _id: notification._id,
+      message: notification.message,
+      createdAt: notification.createdAt,
+      isRead: false,
+    });
+
+    res.json({
+      success: true,
+      message: reportCard ? "Report card updated successfully" : "Report card created successfully",
+      reportCard,
+    });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
