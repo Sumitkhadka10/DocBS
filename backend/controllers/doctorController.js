@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import reportCardModel from "../models/ReportCard.js";
-import notificationModel from "../models/notificationModel.js"; 
+import notificationModel from "../models/notificationModel.js";
 
 const changeAvailability = async (req, res) => {
   try {
@@ -83,12 +83,28 @@ const appointmentComplete = async (req, res) => {
 
 const appointmentCancel = async (req, res) => {
   try {
-    const { docId, appointmentId } = req.body;
+    const { docId, appointmentId, cancellationReason } = req.body;
+
+    // Check if cancellation reason is provided
+    if (!cancellationReason) {
+      return res.json({ success: false, message: "Cancellation reason is required" });
+    }
+
     const appointmentData = await appointmentModel.findById(appointmentId);
     if (appointmentData && appointmentData.docId == docId) {
+      // Update appointment with cancellation status and reason
       await appointmentModel.findByIdAndUpdate(appointmentId, {
         cancelled: true,
+        cancellationReason,
       });
+
+      // Release doctor's slot
+      const { slotDate, slotTime } = appointmentData;
+      const doctorData = await doctorModel.findById(docId);
+      let slots_booked = doctorData.slots_booked;
+      slots_booked[slotDate] = slots_booked[slotDate].filter((e) => e !== slotTime);
+      await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+
       return res.json({ success: true, message: "Appointment Cancelled" });
     } else {
       return res.json({ success: false, message: "Cancellation Failed" });
