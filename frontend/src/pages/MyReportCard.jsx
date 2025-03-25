@@ -4,8 +4,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { usePDF } from "react-to-pdf";
 import { AppContext } from '../context/AppContext';
-import { assets } from "../assets/assets"; 
-import "./MyReportCard.css"; 
+import { assets } from "../assets/assets";
+import "./MyReportCard.css";
 
 const createIcon = (pathContent, className = "text-indigo-600") => ({ size = 20 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -61,23 +61,18 @@ const MyReportCard = () => {
   }, [date, appointmentTime, content, isEditing]);
 
   useEffect(() => {
-    // Apply filters whenever reportCards or filters change
     const filtered = reportCards.filter(report => {
-      // Filter by date
       if (filters.date && report.date) {
         if (!report.date.toLowerCase().includes(filters.date.toLowerCase())) return false;
       }
-
-      // Filter by doctor name
       if (filters.doctorName && report.doctorName) {
         if (!report.doctorName.toLowerCase().includes(filters.doctorName.toLowerCase())) return false;
       }
-
       return true;
     });
 
     setFilteredReportCards(filtered);
-    setCurrentIndex(0); // Reset to first report when filters change
+    setCurrentIndex(0);
     loadReportData(filtered, 0);
   }, [reportCards, filters]);
 
@@ -89,7 +84,7 @@ const MyReportCard = () => {
       const response = await axios.get(`${backendUrl}/api/user/report-cards`, { headers: { token } });
       if (response.data.success) {
         const reports = response.data.reportCards || [];
-        // Sort reports by createdAt in descending order (most recent first)
+        console.log("Fetched Report Cards:", reports);
         const sortedReports = reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setReportCards(sortedReports);
       } else throw new Error(response.data.message || "Failed to fetch report cards");
@@ -102,13 +97,32 @@ const MyReportCard = () => {
     }
   };
 
+  const parseCustomDate = (dateStr) => {
+    if (typeof dateStr === "string" && dateStr.includes("_")) {
+      const [day, month, year] = dateStr.split("_").map(Number);
+      const dateObj = new Date(Date.UTC(year, month - 1, day)); // Use UTC to avoid timezone shifts
+      if (!isNaN(dateObj.getTime())) {
+        return dateObj.toISOString().split("T")[0]; // Returns "YYYY-MM-DD"
+      }
+    }
+    const dateObj = new Date(dateStr);
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj.toISOString().split("T")[0];
+    }
+    console.error("Unparseable date value:", dateStr);
+    return dateStr; // Fallback
+  };
+
   const loadReportData = (reports, index) => {
     if (reports.length > 0 && index >= 0 && index < reports.length) {
       const report = reports[index];
-      setDate(report.date || "");
-      setDoctorName(report.doctorName || "");
-      setAppointmentTime(report.appointmentTime || "");
-      setContent(report.content || "");
+      const normalizedDate = report.date ? parseCustomDate(report.date) : "";
+      const normalizedTime = report.appointmentTime ? report.appointmentTime.padStart(5, "0") : "";
+      
+      setDate(normalizedDate);
+      setDoctorName(report.doctorName || "Unknown Doctor");
+      setAppointmentTime(normalizedTime);
+      setContent(report.content || "No notes available");
       setIsEditing(false);
       setUnsavedChanges(false);
       setIsDoctorGenerated(!!report.appointmentId);
@@ -258,7 +272,7 @@ const MyReportCard = () => {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
         <div className="relative">
-          {type ? (
+          {type && !disabled ? (
             <input
               type={type}
               className={`w-full px-4 py-3 pl-4 pr-10 border ${inputError ? "border-red-300" : "border-gray-300"} rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-gray-50`}
@@ -269,7 +283,7 @@ const MyReportCard = () => {
             />
           ) : (
             <div className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-900 font-medium">
-              {value || ""}
+              {value || "Not specified"}
             </div>
           )}
           {Icon && <div className="absolute right-3 top-3 pointer-events-none"><Icon /></div>}
@@ -373,7 +387,6 @@ const MyReportCard = () => {
 
             {(filteredReportCards.length > 0 || isEditing) && (
               <div ref={targetRef} className="pdf-content">
-                {/* Header */}
                 <div className="pdf-header flex justify-between items-center mb-6">
                   <div className="flex items-center">
                     <img 
@@ -385,7 +398,6 @@ const MyReportCard = () => {
                   <div className="text-sm text-gray-600">Generated on: {formattedDate}</div>
                 </div>
 
-                {/* Patient Information */}
                 <div className="p-6 border border-gray-200 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <UserIcon size={18} className="text-indigo-500 mr-2" />
@@ -397,7 +409,6 @@ const MyReportCard = () => {
                 </div>
                 <hr className="my-6 border-gray-200" />
 
-                {/* Appointment Details */}
                 <div className="p-6 border border-gray-200 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500 mr-2">
@@ -436,7 +447,6 @@ const MyReportCard = () => {
                 </div>
                 <hr className="my-6 border-gray-200" />
 
-                {/* Medical Notes */}
                 <div className="p-6 border border-gray-200 rounded-lg mb-6">
                   <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500 mr-2">
@@ -457,25 +467,22 @@ const MyReportCard = () => {
                         disabled={loading}
                       />
                     ) : (
-                      <div className="w-full min-h-64 font-sans text-gray-700">{content || "No notes available"}</div>
+                      <div className="w-full min-h-64 font-sans text-gray-700">{content}</div>
                     )}
                   </div>
                 </div>
                 <hr className="my-6 border-gray-200" />
 
-                {/* Health Quote */}
                 <div className="p-6 border border-gray-200 rounded-lg mb-6">
                   <p className="italic text-gray-700 text-base">{healthQuotes[currentIndex % healthQuotes.length]}</p>
                 </div>
 
-                {/* Footer */}
                 <div className="pdf-footer text-center text-gray-600 text-sm mt-8">
                   This is an electronic report card generated from: Doctor Booking System | Report {currentIndex + 1} of {filteredReportCards.length || 1}
                 </div>
               </div>
             )}
 
-            {/* UI Controls */}
             {(filteredReportCards.length > 0 || isEditing) && (
               <div className="no-print">
                 <div className="flex justify-center gap-4 mb-6">
