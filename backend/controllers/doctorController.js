@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import reportCardModel from "../models/ReportCard.js";
-import notificationModel from "../models/notificationModel.js"; // Added for notifications
+import notificationModel from "../models/notificationModel.js"; 
 
 const changeAvailability = async (req, res) => {
   try {
