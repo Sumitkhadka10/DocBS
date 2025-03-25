@@ -1,56 +1,122 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { AdminContext } from '../../context/AdminContext';
-import { AppContext } from '../../context/AppContext';
-import { assets } from '../../assets/assets';
+// AllAppointments.jsx
+import React, { useContext, useEffect, useState } from "react";
+import { AdminContext } from "../../context/AdminContext";
+import { AppContext } from "../../context/AppContext";
+import { assets } from "../../assets/assets";
 
 const AllAppointments = () => {
   const { aToken, appointments, getAllAppointments, cancelAppointment } = useContext(AdminContext);
   const { calculateAge, slotDateFormat, currency } = useContext(AppContext);
   const [hoverIndex, setHoverIndex] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState("all");
   const [filters, setFilters] = useState({
-    date: '',
-    patientName: '',
-    doctorName: ''
+    date: "",
+    patientName: "",
+    doctorName: ""
   });
+  const [showReasonModal, setShowReasonModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
 
   useEffect(() => {
     if (aToken) {
       getAllAppointments();
     }
-  }, [aToken]);
+  }, [aToken, getAllAppointments]);
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [name]: value
     }));
   };
 
-  const filteredAppointments = appointments ? appointments.filter(item => {
-    if (activeTab === 'active' && (item.cancelled || item.isCompleted)) return false;
-    if (activeTab === 'cancelled' && !item.cancelled) return false;
-    if (activeTab === 'completed' && !item.isCompleted) return false;
+  const openReasonModal = (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowReasonModal(true);
+  };
 
-    if (filters.date && item.slotDate) {
-      const formattedDate = slotDateFormat(item.slotDate);
-      if (!formattedDate.toLowerCase().includes(filters.date.toLowerCase())) return false;
-    }
+  const closeReasonModal = () => {
+    setShowReasonModal(false);
+    setSelectedAppointment(null);
+  };
 
-    if (filters.patientName && item.userData?.name) {
-      if (!item.userData.name.toLowerCase().includes(filters.patientName.toLowerCase())) return false;
-    }
+  const filteredAppointments = appointments
+    ? appointments.filter((item) => {
+        if (activeTab === "active" && (item.cancelled || item.isCompleted)) return false;
+        if (activeTab === "cancelled" && !item.cancelled) return false;
+        if (activeTab === "completed" && !item.isCompleted) return false;
 
-    if (filters.doctorName && item.docData?.name) {
-      if (!item.docData.name.toLowerCase().includes(filters.doctorName.toLowerCase())) return false;
-    }
+        if (filters.date && item.slotDate) {
+          const formattedDate = slotDateFormat(item.slotDate);
+          if (!formattedDate.toLowerCase().includes(filters.date.toLowerCase())) return false;
+        }
 
-    return true;
-  }) : [];
+        if (filters.patientName && item.userData?.name) {
+          if (!item.userData.name.toLowerCase().includes(filters.patientName.toLowerCase())) return false;
+        }
+
+        if (filters.doctorName && item.docData?.name) {
+          if (!item.docData.name.toLowerCase().includes(filters.doctorName.toLowerCase())) return false;
+        }
+
+        return true;
+      })
+    : [];
 
   return (
     <div className="w-full max-w-6xl m-5">
+      {/* Cancellation Reason Modal */}
+      {showReasonModal && selectedAppointment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Cancellation Details
+              </h3>
+              <button onClick={closeReasonModal} className="text-gray-500 hover:text-gray-700">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-medium text-gray-500">Patient Name</p>
+                <p className="text-base text-gray-700">{selectedAppointment.userData?.name || "Unknown"}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Doctor Name</p>
+                <p className="text-base text-gray-700">{selectedAppointment.docData?.name || "Unknown"}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Date & Time</p>
+                <p className="text-base text-gray-700">
+                  {selectedAppointment.slotDate ? slotDateFormat(selectedAppointment.slotDate) : "N/A"} at {selectedAppointment.slotTime || "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">Cancellation Reason</p>
+                <p className="text-base text-gray-700 bg-red-50 p-3 rounded-lg">
+                  {selectedAppointment.cancellationReason || "No reason provided"}
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={closeReasonModal}
+                className="px-4 py-2 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-6">
         <div className="flex items-center mb-2">
           <div className="h-10 w-1 bg-gradient-to-b from-blue-600 to-blue-500 mr-3 rounded-full shadow-lg"></div>
@@ -60,7 +126,6 @@ const AllAppointments = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          {/* ... Stats cards remain unchanged ... */}
           <div className="bg-white rounded-xl shadow-md p-4 border border-gray-200">
             <div className="flex justify-between items-center">
               <div>
@@ -74,7 +139,6 @@ const AllAppointments = () => {
               </div>
             </div>
           </div>
-          {/* ... Other stats cards ... */}
           <div className="bg-white rounded-xl shadow-md p-4 border border-gray-200">
             <div className="flex justify-between items-center">
               <div>
@@ -122,7 +186,6 @@ const AllAppointments = () => {
           </div>
         </div>
 
-        {/* Enhanced Filter Section */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-800 flex items-center">
@@ -132,7 +195,7 @@ const AllAppointments = () => {
               Filter Appointments
             </h3>
             <button
-              onClick={() => setFilters({ date: '', patientName: '', doctorName: '' })}
+              onClick={() => setFilters({ date: "", patientName: "", doctorName: "" })}
               className="text-sm text-blue-600 hover:text-blue-800 transition-colors flex items-center"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,44 +257,42 @@ const AllAppointments = () => {
           </div>
         </div>
 
-        {/* Tab Navigation remains unchanged */}
         <div className="flex space-x-2 mb-2">
           <button
-            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === 'all'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-              : 'bg-white text-gray-700 hover:bg-blue-50'}`}
-            onClick={() => setActiveTab('all')}
+            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === "all"
+              ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md"
+              : "bg-white text-gray-700 hover:bg-blue-50"}`}
+            onClick={() => setActiveTab("all")}
           >
             All Appointments
           </button>
           <button
-            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === 'active'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-              : 'bg-white text-gray-700 hover:bg-blue-50'}`}
-            onClick={() => setActiveTab('active')}
+            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === "active"
+              ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md"
+              : "bg-white text-gray-700 hover:bg-blue-50"}`}
+            onClick={() => setActiveTab("active")}
           >
             Active
           </button>
           <button
-            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === 'cancelled'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-              : 'bg-white text-gray-700 hover:bg-blue-50'}`}
-            onClick={() => setActiveTab('cancelled')}
+            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === "cancelled"
+              ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md"
+              : "bg-white text-gray-700 hover:bg-blue-50"}`}
+            onClick={() => setActiveTab("cancelled")}
           >
             Cancelled
           </button>
           <button
-            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === 'completed'
-              ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-              : 'bg-white text-gray-700 hover:bg-blue-50'}`}
-            onClick={() => setActiveTab('completed')}
+            className={`px-4 py-2 rounded-md text-base font-medium transition-all duration-200 ${activeTab === "completed"
+              ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md"
+              : "bg-white text-gray-700 hover:bg-blue-50"}`}
+            onClick={() => setActiveTab("completed")}
           >
             Completed
           </button>
         </div>
       </div>
 
-      {/* Rest of the component remains unchanged */}
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 text-sm max-h-[80vh] min-h-[60vh] overflow-hidden relative">
         <div className="hidden sm:grid grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] grid-flow-col py-4 px-6 backdrop-blur-md bg-gradient-to-r from-blue-50/80 via-gray-50/90 to-blue-50/80 border-b border-gray-200 sticky top-0 z-10">
           <p className="text-sm uppercase font-bold tracking-widest text-gray-700">S.N</p>
@@ -247,7 +308,7 @@ const AllAppointments = () => {
           {filteredAppointments && filteredAppointments.length > 0 ? (
             filteredAppointments.reverse().map((item, index) => (
               <div
-                className={`flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] items-center py-5 px-6 border-b border-gray-200 transition-all duration-300 ${hoverIndex === index ? 'bg-gradient-to-r from-blue-50/80 to-gray-50/80 transform scale-[0.995]' : 'bg-white'}`}
+                className={`flex flex-wrap justify-between max-sm:gap-2 sm:grid sm:grid-cols-[0.5fr_3fr_1fr_3fr_3fr_1fr_1fr] items-center py-5 px-6 border-b border-gray-200 transition-all duration-300 ${hoverIndex === index ? "bg-gradient-to-r from-blue-50/80 to-gray-50/80 transform scale-[0.995]" : "bg-white"}`}
                 key={index}
                 onMouseEnter={() => setHoverIndex(index)}
                 onMouseLeave={() => setHoverIndex(null)}
@@ -262,26 +323,26 @@ const AllAppointments = () => {
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center shadow-md">
                       <span className="text-white font-bold">
-                        {item.userData && item.userData.name ? item.userData.name.charAt(0).toUpperCase() : '?'}
+                        {item.userData && item.userData.name ? item.userData.name.charAt(0).toUpperCase() : "?"}
                       </span>
                     </div>
                   )}
                   <div>
-                    <p className="font-medium text-base text-gray-700">{item.userData ? item.userData.name : 'Unknown'}</p>
-                    <p className="text-xs text-gray-500 sm:hidden">Age: {item.userData && item.userData.dob ? calculateAge(item.userData.dob) : 'N/A'}</p>
+                    <p className="font-medium text-base text-gray-700">{item.userData ? item.userData.name : "Unknown"}</p>
+                    <p className="text-xs text-gray-500 sm:hidden">Age: {item.userData && item.userData.dob ? calculateAge(item.userData.dob) : "N/A"}</p>
                   </div>
                 </div>
                 <div className="max-sm:hidden">
                   <span className="inline-block py-1 px-3 bg-blue-50 text-gray-700 font-medium text-sm rounded-full">
-                    {item.userData && item.userData.dob ? calculateAge(item.userData.dob) : 'N/A'}
+                    {item.userData && item.userData.dob ? calculateAge(item.userData.dob) : "N/A"}
                   </span>
                 </div>
                 <div className="text-gray-700">
                   <div className="flex flex-col">
-                    <p className="font-medium text-sm text-gray-700">{item.slotDate ? slotDateFormat(item.slotDate) : 'N/A'}</p>
+                    <p className="font-medium text-sm text-gray-700">{item.slotDate ? slotDateFormat(item.slotDate) : "N/A"}</p>
                     <div className="flex items-center mt-1">
                       <div className="h-2 w-2 rounded-full bg-blue-500 mr-2"></div>
-                      <p className="text-sm font-medium text-gray-500">{item.slotTime || 'N/A'}</p>
+                      <p className="text-sm font-medium text-gray-500">{item.slotTime || "N/A"}</p>
                     </div>
                   </div>
                 </div>
@@ -294,11 +355,11 @@ const AllAppointments = () => {
                   ) : (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-blue-600 to-blue-500 flex items-center justify-center shadow-md">
                       <span className="text-white font-bold">
-                        {item.docData && item.docData.name ? item.docData.name.charAt(0).toUpperCase() : '?'}
+                        {item.docData && item.docData.name ? item.docData.name.charAt(0).toUpperCase() : "?"}
                       </span>
                     </div>
                   )}
-                  <p className="font-medium text-base text-gray-700">{item.docData ? item.docData.name : 'Unknown'}</p>
+                  <p className="font-medium text-base text-gray-700">{item.docData ? item.docData.name : "Unknown"}</p>
                 </div>
                 <div>
                   <span className="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-500">
@@ -307,12 +368,15 @@ const AllAppointments = () => {
                 </div>
                 {item.cancelled ? (
                   <div className="flex justify-center">
-                    <p className="px-3 py-1.5 rounded-md bg-red-500 text-white text-xs font-bold inline-flex items-center space-x-1">
+                    <button
+                      onClick={() => openReasonModal(item)}
+                      className="px-3 py-1.5 rounded-md bg-red-500 text-white text-xs font-bold inline-flex items-center space-x-1 hover:bg-red-600 transition-colors duration-300"
+                    >
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
                       </svg>
                       <span>Cancelled</span>
-                    </p>
+                    </button>
                   </div>
                 ) : item.isCompleted ? (
                   <div className="flex justify-center">
@@ -349,22 +413,22 @@ const AllAppointments = () => {
                 </div>
               </div>
               <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-500">
-                {activeTab === 'all'
-                  ? 'No appointments found'
-                  : activeTab === 'active'
-                    ? 'No active appointments'
-                    : activeTab === 'cancelled'
-                      ? 'No cancelled appointments'
-                      : 'No completed appointments'}
+                {activeTab === "all"
+                  ? "No appointments found"
+                  : activeTab === "active"
+                  ? "No active appointments"
+                  : activeTab === "cancelled"
+                  ? "No cancelled appointments"
+                  : "No completed appointments"}
               </p>
               <p className="text-base text-gray-500 mt-2">
-                {activeTab === 'all'
-                  ? 'Scheduled appointments will appear here'
-                  : activeTab === 'active'
-                    ? 'Active appointments will appear here'
-                    : activeTab === 'cancelled'
-                      ? 'Cancelled appointments will appear here'
-                      : 'Completed appointments will appear here'}
+                {activeTab === "all"
+                  ? "Scheduled appointments will appear here"
+                  : activeTab === "active"
+                  ? "Active appointments will appear here"
+                  : activeTab === "cancelled"
+                  ? "Cancelled appointments will appear here"
+                  : "Completed appointments will appear here"}
               </p>
             </div>
           )}

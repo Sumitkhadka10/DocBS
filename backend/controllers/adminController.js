@@ -121,55 +121,63 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-// Api to get all doctor list for admin panel
-
+// API to get all doctor list for admin panel
 const allDoctors = async (req, res) => {
   try {
     const doctors = await doctorModel.find({}).select("-password");
-    res.json({ sucess: true, doctors });
+    res.json({ success: true, doctors }); // Fixed typo: sucess -> success
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// Api to get all appointment list
-
+// API to get all appointment list
 const appointmentsAdmin = async (req, res) => {
   try {
     const appointments = await appointmentModel.find({});
-    res.json({ sucess: true, appointments });
+    res.json({ success: true, appointments }); // Fixed typo: sucess -> success
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
-//API For apppointment cancellation
 
+// API for appointment cancellation
 const appointmentCancel = async (req, res) => {
-
   try {
-    const {appointmentId} = req.body;
+    const { appointmentId, cancellationReason } = req.body;
+
+    // Check if cancellation reason is provided
+    if (!cancellationReason) {
+      return res.json({ success: false, message: "Cancellation reason is required" });
+    }
+
     const appointmentData = await appointmentModel.findById(appointmentId);
+    if (!appointmentData) {
+      return res.json({ success: false, message: "Appointment not found" });
+    }
 
+    // Update appointment with cancellation status and reason
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      cancelled: true,
+      cancellationReason,
+    });
 
-    await appointmentModel.findByIdAndUpdate(appointmentId, {cancelled: true});
-
-    // releasing doctor slot
-    const {docId, slotDate, slotTime} = appointmentData;
+    // Release doctor's slot
+    const { docId, slotDate, slotTime } = appointmentData;
     const doctorData = await doctorModel.findById(docId);
     let slots_booked = doctorData.slots_booked;
-    slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime);
-    await doctorModel.findByIdAndUpdate(docId, {slots_booked});
-    res.json({ success: true, message: "Appointment Cancelled Successfully" });
+    slots_booked[slotDate] = slots_booked[slotDate].filter((e) => e !== slotTime);
+    await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
-    
+    res.json({ success: true, message: "Appointment Cancelled Successfully" });
   } catch (error) {
     console.error(error);
-    res.json({ success: false, message: error.message,});
-    
+    res.json({ success: false, message: error.message });
   }
-}
+};
+
 // API to get all registered users (for admin only)
 const getAllUsers = async (req, res) => {
   try {
@@ -184,25 +192,22 @@ const getAllUsers = async (req, res) => {
 // API to get dashboard data for admin panel
 const adminDashboard = async (req, res) => {
   try {
-
     const doctors = await doctorModel.find({});
     const appointments = await appointmentModel.find({});
     const users = await userModel.find({});
 
-    const dashData ={
+    const dashData = {
       doctors: doctors.length,
       appointments: appointments.length,
       patients: users.length,
-      latestAppointments: appointments.reverse().slice(0,5)
-    }
+      latestAppointments: appointments.reverse().slice(0, 5),
+    };
 
     res.json({ success: true, dashData });
-    
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
-    
   }
-}
+};
 
 export { addDoctor, loginAdmin, allDoctors, appointmentsAdmin, appointmentCancel, getAllUsers, adminDashboard };
