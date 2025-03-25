@@ -1,3 +1,4 @@
+// MyAppointments.jsx
 import React, { useContext, useEffect, useState } from "react";
 import { AppContext } from "../context/AppContext";
 import axios from "axios";
@@ -74,7 +75,6 @@ const MyAppointments = () => {
       ) : (
         <div className="space-y-6">
           {appointments.map((item, index) => {
-            // Determine border color and status based on appointment state
             let borderColor = "border-blue-400";
             let statusBadge = null;
             let statusText = "Active";
@@ -103,7 +103,7 @@ const MyAppointments = () => {
             return (
               <div
                 key={index}
-                className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg relative border-l-4 ${borderColor} ${item.cancelled ? 'opacity-75' : ''}`}
+                className={`bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg relative border-l-4 ${borderColor} ${item.cancelled ? "opacity-75" : ""}`}
               >
                 {statusBadge}
                 
@@ -156,6 +156,12 @@ const MyAppointments = () => {
                       </svg>
                       <span className="text-sm font-medium">{item.slotTime}</span>
                     </div>
+
+                    {item.cancelled && item.cancellationReason && (
+                      <div className="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                        <strong>Cancellation Reason:</strong> {item.cancellationReason}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-4 md:w-1/4 flex items-center justify-center border-t md:border-t-0 md:border-l border-gray-200">
