@@ -13,17 +13,18 @@ const AdminContextProvider = (props) => {
   const [dashData, setDashData] = useState(false);
   const [lastErrorTime, setLastErrorTime] = useState({ dash: 0, appts: 0 });
   const [lastActiveTime, setLastActiveTime] = useState(Date.now());
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelAppointmentId, setCancelAppointmentId] = useState(null);
+  const [cancellationReason, setCancellationReason] = useState("");
 
   const ERROR_COOLDOWN = 1800000; // 30 minutes in milliseconds 
 
-  // Track tab visibility for inactivity
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
         setLastActiveTime(Date.now());
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []);
@@ -33,13 +34,9 @@ const AdminContextProvider = (props) => {
       const { data } = await axios.post(
         `${backendUrl}/api/admin/all-doctors`,
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${aToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${aToken}` } }
       );
-      if (data.sucess) { // Fixed typo: sucess -> success
+      if (data.success) {
         setDoctors(data.doctors);
         console.log("Doctors loaded:", data.doctors);
       } else {
@@ -56,15 +53,11 @@ const AdminContextProvider = (props) => {
       const { data } = await axios.post(
         `${backendUrl}/api/admin/change-availability`,
         { docId },
-        {
-          headers: {
-            Authorization: `Bearer ${aToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${aToken}` } }
       );
       if (data.success) {
         toast.success(data.message || "Availability changed successfully");
-        await getAllDoctors(); // Refresh doctors list
+        await getAllDoctors();
       } else {
         toast.error(data.message || "Failed to change availability");
       }
@@ -78,13 +71,9 @@ const AdminContextProvider = (props) => {
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/admin/appointments`,
-        {
-          headers: {
-            Authorization: `Bearer ${aToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${aToken}` } }
       );
-      if (data.sucess) { // Fixed typo: sucess -> success
+      if (data.success) {
         setAppointments(data.appointments);
         console.log("Appointments loaded:", data.appointments);
       } else {
@@ -104,27 +93,38 @@ const AdminContextProvider = (props) => {
   };
 
   const cancelAppointment = async (appointmentId) => {
+    setCancelAppointmentId(appointmentId);
+    setShowCancelModal(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!cancellationReason.trim()) {
+      toast.error("Cancellation reason is required");
+      return;
+    }
+
+    // Close the modal immediately after clicking "Confirm Cancel"
+    setShowCancelModal(false);
+
     try {
-      console.log("Cancelling appointment:", appointmentId);
       const { data } = await axios.post(
         `${backendUrl}/api/admin/cancel-appointment`,
-        { appointmentId },
-        {
-          headers: {
-            Authorization: `Bearer ${aToken}`,
-          },
-        }
+        { appointmentId: cancelAppointmentId, cancellationReason },
+        { headers: { Authorization: `Bearer ${aToken}` } }
       );
-      console.log("Cancel appointment response:", data);
       if (data.success) {
         toast.success(data.message || "Appointment cancelled successfully");
-        await getAllAppointments(); // Refresh appointments list
+        await getAllAppointments();
       } else {
         toast.error(data.message || "Failed to cancel appointment");
       }
     } catch (error) {
       console.error("Error canceling appointment:", error);
       toast.error(error.response?.data?.message || error.message || "Error cancelling appointment");
+    } finally {
+      // Reset state after the operation
+      setCancellationReason("");
+      setCancelAppointmentId(null);
     }
   };
 
@@ -132,11 +132,7 @@ const AdminContextProvider = (props) => {
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/admin/users`,
-        {
-          headers: {
-            Authorization: `Bearer ${aToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${aToken}` } }
       );
       if (data.success) {
         setUsers(data.users);
@@ -154,11 +150,7 @@ const AdminContextProvider = (props) => {
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/admin/dashboard`,
-        {
-          headers: {
-            Authorization: `Bearer ${aToken}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${aToken}` } }
       );
       if (data.success) {
         setDashData(data.dashData);
@@ -194,11 +186,48 @@ const AdminContextProvider = (props) => {
     getAllUsers,
     dashData,
     getDashData,
+    showCancelModal,
+    setShowCancelModal,
+    cancellationReason,
+    setCancellationReason,
+    handleCancelConfirm,
   };
 
   return (
     <AdminContext.Provider value={value}>
       {props.children}
+      {showCancelModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-lg font-semibold mb-4">Cancel Appointment</h3>
+            <textarea
+              className="w-full p-2 border rounded-lg mb-4 resize-none"
+              placeholder="Enter reason for cancellation"
+              value={cancellationReason}
+              onChange={(e) => setCancellationReason(e.target.value)}
+              rows="4"
+              required
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setCancellationReason("");
+                }}
+              >
+                Close
+              </button>
+              <button
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                onClick={handleCancelConfirm}
+              >
+                Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminContext.Provider>
   );
 };
