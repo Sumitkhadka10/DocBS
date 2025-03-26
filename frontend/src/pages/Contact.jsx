@@ -34,7 +34,7 @@ const Contact = () => {
               <MdLocationOn className="text-primary text-2xl" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors">Healthcare Hub</h2>
+              <h2 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors">Doctor Booking System</h2>
               <p className="text-gray-600 mt-1 hover:text-gray-700 transition-colors">
                 Naxal Bhagawati Marga, <br />
                 Kathmandu, Nepal

@@ -23,8 +23,6 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       if (data.success) {
         setNotifications(data.notifications);
         setUnreadCount(data.notifications.filter((n) => !n.isRead).length);
-      } else {
-        toast.error(data.message);
       }
     } catch (error) {
       console.error(error);
@@ -44,7 +42,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
         setNotifications((prev) =>
           prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
         );
-        setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+        setUnreadCount((prev) => Math.max(prev - 1, 0));
         toast.success("Notification marked as read");
       } else {
         toast.error(data.message);
@@ -123,7 +121,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
           <div className="mt-2 flex space-x-2">
             <button
               onClick={() => {
-                navigate(`/my-appointments`); 
+                navigate(`/my-appointments`);
                 closeToast();
               }}
               className="text-xs font-medium text-green-600 hover:text-green-800 underline transition-colors duration-200"
@@ -142,7 +140,6 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     );
   };
 
-  // Set up WebSocket and handle real-time toast notifications
   useEffect(() => {
     if (!token || !userData) {
       setNotifications([]);
@@ -150,25 +147,24 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       return;
     }
 
-    // Fetch initial notifications when dropdown opens
-    if (isOpen) {
-      fetchNotifications();
-    }
+    // Fetch initial notifications
+    fetchNotifications();
 
     // Initialize WebSocket connection
     const newSocket = io(backendUrl, { auth: { token } });
     setSocket(newSocket);
 
-    // Join user's room based on userId
     newSocket.emit("joinRoom", userData._id);
 
-    // Listen for new notifications and show appropriate toast
     newSocket.on("newNotification", (notification) => {
-      setUnreadCount((prev) => prev + 1); // Update unread count only
+      // Update both notifications list and unread count
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
 
-      // Determine the notification type and render the appropriate toast
-      const isAppointmentReminder = notification.type === "appointment_reminder"; // Adjust based on your backend data
-      const ToastComponent = isAppointmentReminder ? AppointmentReminderToast : ReportCardToast;
+      // Determine notification type and show appropriate toast
+      const ToastComponent = notification.type === "appointment_reminder"
+        ? AppointmentReminderToast
+        : ReportCardToast;
 
       toast(
         <ToastComponent
@@ -177,35 +173,39 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
         />,
         {
           position: "top-right",
-          autoClose: 7000, // Longer duration for interaction
+          autoClose: 7000,
           hideProgressBar: true,
-          closeOnClick: false, // Allow clicking actions without closing
+          closeOnClick: false,
           pauseOnHover: true,
-          className: "bg-transparent p-0", // Remove default padding/background
+          className: "bg-transparent p-0",
           bodyClassName: "flex items-start",
         }
       );
     });
 
-    // Listen for notification read events
-    newSocket.on("notificationRead", () => {
-      setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+    newSocket.on("notificationRead", (notificationId) => {
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(prev - 1, 0));
     });
 
-    // Cleanup on unmount
     return () => {
       newSocket.disconnect();
     };
-  }, [token, userData, backendUrl, isOpen, navigate]);
+  }, [token, userData, backendUrl, navigate]);
+
+  // Refresh notifications when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications();
+    }
+  }, [isOpen]);
 
   return (
     <div className="relative">
-      {/* Notification Bell Icon */}
       <button
-        onClick={() => {
-          setIsOpen(!isOpen);
-          if (!isOpen) fetchNotifications(); // Fetch notifications when opening
-        }}
+        onClick={() => setIsOpen(!isOpen)}
         className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-300 relative"
       >
         <Bell className="h-6 w-6 text-gray-600 hover:text-primary transition-colors duration-300" />
@@ -216,7 +216,6 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
         )}
       </button>
 
-      {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-100 z-50 max-h-96 overflow-y-auto">
           <div className="p-3 border-b border-gray-100">
@@ -257,7 +256,6 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   );
 };
 
-// Notification Item Component
 const NotificationItem = ({ notification, markAsRead, formatTimestamp }) => (
   <div
     className={`flex items-center p-3 border-b border-gray-100 hover:bg-primary/5 transition-colors duration-300 ${
