@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: { type: String }, // Optional for Google users
   image: {
     type: String,
     default:
@@ -13,7 +13,8 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, default: "Not Selected" },
   dob: { type: String, default: "Not Selected" },
   phone: { type: String, default: "0000000000" },
-  isVerified: { type: Boolean, default: false }, // New field for email verification
+  isVerified: { type: Boolean, default: false },
+  googleId: { type: String, unique: true, sparse: true }, // Add Google ID field
 });
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);
