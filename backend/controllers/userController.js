@@ -9,6 +9,7 @@ import reportCardModel from "../models/ReportCard.js";
 import notificationModel from "../models/notificationModel.js";
 import { scheduleJob } from "node-schedule";
 import nodemailer from "nodemailer";
+import { OAuth2Client } from "google-auth-library"; // Add Google OAuth2 client
 
 // Configure Nodemailer
 const transporter = nodemailer.createTransport({
@@ -18,6 +19,9 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASS,
   },
 });
+
+// Google OAuth2 Client
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Register User with Email Verification
 const registerUser = async (req, res) => {
@@ -207,6 +211,56 @@ const loginUser = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
+  }
+};
+
+// Google Login/Signup
+const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body; // Google ID token from frontend
+
+    // Verify Google token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+
+    const { email, name, sub: googleId } = payload; // sub is Google's unique user ID
+
+    // Check if user already exists
+    let user = await userModel.findOne({ email });
+    if (user) {
+      // User exists, log them in
+      if (!user.isVerified) {
+        await userModel.findByIdAndUpdate(user._id, { isVerified: true }); // Auto-verify Google users
+      }
+      const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      return res.json({ success: true, token: jwtToken, message: "Logged in with Google" });
+    }
+
+    // User doesn't exist, sign them up
+    const userData = {
+      name,
+      email,
+      password: "", // No password for Google users
+      isVerified: true, // Google users are auto-verified
+      googleId, // Store Google ID
+    };
+
+    const newUser = new userModel(userData);
+    user = await newUser.save();
+
+    const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.json({ success: true, token: jwtToken, message: "Signed up with Google" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Google authentication failed" });
   }
 };
 
@@ -514,4 +568,5 @@ export {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  googleLogin, 
 };
