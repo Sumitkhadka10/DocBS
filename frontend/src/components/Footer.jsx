@@ -80,8 +80,8 @@ const Footer = () => {
 
               <div className="flex items-center gap-3 hover:bg-primary/5 p-2 rounded-lg transition-colors duration-300">
                 <FaEnvelope className="text-gray-600 text-sm" />
-                <a href="mailto:doctorbooking@gmail.com" className="text-gray-600 text-sm hover:text-primary transition-colors duration-300">
-                  doctorbooking@gmail.com
+                <a href="mailto:doctorbooking2025@gmail.com" className="text-gray-600 text-sm hover:text-primary transition-colors duration-300">
+                doctorbookingsystem2025@gmail.com
                 </a>
               </div>
             </div>

@@ -50,7 +50,7 @@ const Contact = () => {
             </div>
             <div className="flex items-center gap-4 group">
               <FaEnvelope className="text-gray-500 group-hover:text-primary transition-colors" />
-              <span className="text-gray-600 group-hover:text-primary transition-colors">doctorbookingsystem@gmail.com</span>
+              <span className="text-gray-600 group-hover:text-primary transition-colors">doctorbookingsystem2025@gmail.com</span>
             </div>
           </div>
 

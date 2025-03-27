@@ -12,6 +12,8 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import Notifications from './pages/Notification'
 import MyReportCard from './pages/MyReportCard'
+import VerifyEmail from "./pages/VerifyEmail.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -33,6 +35,8 @@ const App = () => {
         <Route path ='/my-report-card' element={<MyReportCard />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path='/appointment/:docId' element={<Appointment />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
       </Routes>
       <Footer />
