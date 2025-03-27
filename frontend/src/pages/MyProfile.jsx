@@ -29,6 +29,13 @@ const MyProfile = () => {
 
   const updateUserProfileData = async () => {
     try {
+      // Validate DOB before submitting
+      const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+      if (userData.dob > today) {
+        toast.error("Date of birth cannot be in the future!");
+        return;
+      }
+
       const formData = new FormData();
       formData.append("name", userData.name);
       formData.append("phone", userData.phone);
@@ -59,11 +66,13 @@ const MyProfile = () => {
 
   if (!userData) return null;
 
+  // Get today's date for the max attribute
+  const today = new Date().toISOString().split("T")[0];
+
   return (
     <div className="max-w-4xl mx-auto bg-gray-50 rounded-3xl overflow-hidden shadow-xl">
-      {/* Banner */}
+      {/* Banner and other sections remain unchanged */}
       <div className="h-48 bg-gradient-to-r from-blue-500 to-purple-600 relative">
-        {/* Edit Button */}
         <div className="absolute top-6 right-6">
           <button
             className={`px-6 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
@@ -78,10 +87,9 @@ const MyProfile = () => {
         </div>
       </div>
 
-      {/* Profile Section */}
       <div className="px-8 pt-0 pb-8">
+        {/* Profile image and name section unchanged */}
         <div className="flex flex-col items-start space-y-4 mb-10 relative">
-          {/* Profile Image - Positioned to not be covered by banner */}
           <div className="flex items-end space-x-6 relative -mt-24">
             {isEdit ? (
               <label htmlFor="image" className="group relative cursor-pointer">
@@ -115,8 +123,6 @@ const MyProfile = () => {
                 />
               </div>
             )}
-            
-            {/* Name Field */}
             <div className="mt-4">
               {isEdit ? (
                 <input
@@ -132,9 +138,8 @@ const MyProfile = () => {
           </div>
         </div>
 
-        {/* Profile Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-          {/* Account Overview */}
+          {/* Account Overview and Contact Information unchanged */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <h3 className="text-lg font-semibold text-purple-800 mb-4">
               Account Overview
@@ -167,7 +172,6 @@ const MyProfile = () => {
             </ul>
           </div>
 
-          {/* Contact Information */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
             <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -218,7 +222,7 @@ const MyProfile = () => {
             </div>
           </div>
 
-          {/* Basic Information */}
+          {/* Updated Basic Information Section */}
           <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 md:col-span-2">
             <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -251,6 +255,7 @@ const MyProfile = () => {
                     type="date"
                     value={userData.dob || ""}
                     onChange={(e) => handleChange("dob", e.target.value)}
+                    max={today} // Restrict to today or earlier
                   />
                 ) : (
                   <p className="text-gray-700 font-medium">{userData.dob || "Not provided"}</p>
