@@ -8,7 +8,18 @@ import appointmentModel from "../models/appointmentModel.js";
 import reportCardModel from "../models/ReportCard.js";
 import notificationModel from "../models/notificationModel.js";
 import { scheduleJob } from "node-schedule";
+import nodemailer from "nodemailer";
 
+// Configure Nodemailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+// Register User with Email Verification
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -27,6 +38,12 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // Check if email already exists
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
+      return res.json({ success: false, message: "Email already registered" });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -34,20 +51,134 @@ const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      isVerified: false,
     };
 
     const newUser = new userModel(userData);
     const user = await newUser.save();
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    // Generate verification token
+    const verificationToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
-    res.json({ success: true, token });
+    // Send verification email
+    const verificationLink = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Verify Your Email - Doctor Booking System",
+      html: `<p>Please verify your email by clicking the link below:</p>
+             <a href="${verificationLink}">Verify Email</a>
+             <p>This link expires in 24 hours.</p>`,
+    });
+
+    res.json({
+      success: true,
+      message: "Registration successful! Please check your email to verify your account.",
+    });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
   }
 };
 
+// Verify Email
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await userModel.findById(decoded.id);
+
+    if (!user) {
+      return res.json({ success: false, message: "Invalid or expired token" });
+    }
+
+    if (user.isVerified) {
+      return res.json({ success: false, message: "Email already verified" });
+    }
+
+    await userModel.findByIdAndUpdate(decoded.id, { isVerified: true });
+    res.json({ success: true, message: "Email verified successfully" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Invalid or expired token" });
+  }
+};
+
+// Forgot Password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || !validator.isEmail(email)) {
+      return res.json({ success: false, message: "Please provide a valid email" });
+    }
+
+    const user = await userModel.findOne({ email });
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // Generate reset token
+    const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
+
+    // Send reset email
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset - Doctor Booking System",
+      html: `<p>You requested a password reset. Click the link below to reset your password:</p>
+             <a href="${resetLink}">Reset Password</a>
+             <p>This link expires in 1 hour.</p>`,
+    });
+
+    res.json({
+      success: true,
+      message: "Password reset link sent to your email",
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Reset Password
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 8) {
+      return res.json({
+        success: false,
+        message: "Password must be at least 8 characters long",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await userModel.findById(decoded.id);
+
+    if (!user) {
+      return res.json({ success: false, message: "Invalid or expired token" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    await userModel.findByIdAndUpdate(decoded.id, { password: hashedPassword });
+    res.json({ success: true, message: "Password reset successfully" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: "Invalid or expired token" });
+  }
+};
+
+// Login User with Email Verification Check
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -57,9 +188,18 @@ const loginUser = async (req, res) => {
       return res.json({ success: false, message: "User not found" });
     }
 
+    if (!user.isVerified) {
+      return res.json({
+        success: false,
+        message: "Please verify your email before logging in",
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "7d",
+      });
       res.json({ success: true, token });
     } else {
       res.json({ success: false, message: "Invalid Credentials" });
@@ -70,6 +210,7 @@ const loginUser = async (req, res) => {
   }
 };
 
+// Remaining functions remain unchanged
 const getProfile = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -356,8 +497,21 @@ const markAllAsRead = async (req, res) => {
   }
 };
 
-export { 
-  registerUser, loginUser, getProfile, updateProfile, bookAppointment, 
-  listAppointment, cancelAppointment, saveReportCard, getReportCards, 
-  updateReportCard, getNotifications, markNotificationRead, markAllAsRead 
+export {
+  registerUser,
+  loginUser,
+  getProfile,
+  updateProfile,
+  bookAppointment,
+  listAppointment,
+  cancelAppointment,
+  saveReportCard,
+  getReportCards,
+  updateReportCard,
+  getNotifications,
+  markNotificationRead,
+  markAllAsRead,
+  verifyEmail,
+  forgotPassword,
+  resetPassword,
 };
