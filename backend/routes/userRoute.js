@@ -15,6 +15,7 @@ import {
   verifyEmail,
   forgotPassword,
   resetPassword,
+  googleLogin, 
 } from "../controllers/userController.js";
 import authUser from "../middlewares/authUser.js";
 import upload from "../middlewares/multer.js";
@@ -36,5 +37,6 @@ userRouter.post("/mark-notification-read", authUser, markNotificationRead);
 userRouter.get("/verify-email/:token", verifyEmail);
 userRouter.post("/forgot-password", forgotPassword);
 userRouter.post("/reset-password/:token", resetPassword);
+userRouter.post("/google-login", googleLogin); 
 
 export default userRouter;
