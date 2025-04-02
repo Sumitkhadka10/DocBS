@@ -12,22 +12,34 @@ const DoctorProfile = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  const [newImage, setNewImage] = useState(null);
 
   const updateProfile = async () => {
     try {
-      const updateData = {
-        address: profileData.address,
-        fee: profileData.fee,
-        available: profileData.available,
-      };
+      const formData = new FormData();
+      formData.append("docId", profileData._id);
+      formData.append("fee", profileData.fee);
+      formData.append("address", JSON.stringify(profileData.address));
+      formData.append("available", profileData.available);
+      if (newImage) {
+        formData.append("image", newImage);
+      }
+
       const { data } = await axios.post(
-        backendUrl + "/api/doctor/update-profile",
-        updateData,
-        { headers: { dToken } }
+        `${backendUrl}/api/doctor/update-profile`,
+        formData,
+        {
+          headers: {
+            dToken,
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
+
       if (data.success) {
         toast.success(data.message);
         setIsEdit(false);
+        setNewImage(null);
         getProfileData();
       } else {
         toast.error(data.message);
@@ -41,7 +53,7 @@ const DoctorProfile = () => {
   const changePassword = async () => {
     try {
       const { data } = await axios.post(
-        backendUrl + "/api/doctor/change-password",
+        `${backendUrl}/api/doctor/change-password`,
         { currentPassword, newPassword, docId: profileData._id },
         { headers: { dToken } }
       );
@@ -68,15 +80,45 @@ const DoctorProfile = () => {
     <div className="bg-gray-50 min-h-screen p-4 sm:p-6">
       <div className="max-w-5xl mx-auto bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
         <div className="flex flex-col md:flex-row">
-          {/* Left sidebar */}
           <div className="md:w-1/3 bg-indigo-600 text-white p-6">
             <div className="flex flex-col items-center">
-              <div className="w-36 h-36 rounded-full bg-white p-1 mb-4">
+              <div className="w-36 h-36 rounded-full bg-white p-1 mb-4 relative">
                 <img
                   className="w-full h-full object-cover rounded-full"
-                  src={profileData.image}
+                  src={
+                    newImage
+                      ? URL.createObjectURL(newImage)
+                      : profileData.image
+                  }
                   alt={profileData.name}
                 />
+                {isEdit && (
+                  <label
+                    htmlFor="profile-img"
+                    className="absolute inset-0 bg-black bg-opacity-40 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-8 w-8 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <input
+                      type="file"
+                      id="profile-img"
+                      hidden
+                      onChange={(e) => setNewImage(e.target.files[0])}
+                    />
+                  </label>
+                )}
               </div>
 
               <h2 className="text-2xl font-semibold text-center text-white">
@@ -116,7 +158,6 @@ const DoctorProfile = () => {
             </div>
           </div>
 
-          {/* Main content */}
           <div className="md:w-2/3 p-6">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-semibold text-gray-900">
@@ -125,7 +166,10 @@ const DoctorProfile = () => {
               {isEdit ? (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setIsEdit(false)}
+                    onClick={() => {
+                      setIsEdit(false);
+                      setNewImage(null);
+                    }}
                     className="px-4 py-2 border border-gray-200 text-gray-600 rounded hover:bg-indigo-600/20 text-sm font-medium"
                   >
                     Cancel
@@ -284,7 +328,6 @@ const DoctorProfile = () => {
                 </div>
               </div>
 
-              {/* Password Change Section */}
               {isEdit && (
                 <div className="border-t border-gray-200 pt-6">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">
