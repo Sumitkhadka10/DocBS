@@ -240,6 +240,45 @@ const saveOrUpdatePatientReportCard = async (req, res) => {
   }
 };
 
+// API to change doctor's password
+const changePassword = async (req, res) => {
+  try {
+    const { docId, currentPassword, newPassword } = req.body;
+
+    // Find the doctor by ID
+    const doctor = await doctorModel.findById(docId);
+    if (!doctor) {
+      return res.json({ success: false, message: "Doctor not found" });
+    }
+
+    // Verify current password
+    const isMatch = await bcrypt.compare(currentPassword, doctor.password);
+    if (!isMatch) {
+      return res.json({ success: false, message: "Current password is incorrect" });
+    }
+
+    // Validate new password length
+    if (newPassword.length < 8) {
+      return res.json({
+        success: false,
+        message: "New password must be at least 8 characters long",
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedNewPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update the doctor's password
+    await doctorModel.findByIdAndUpdate(docId, { password: hashedNewPassword });
+
+    res.json({ success: true, message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
 export {
   changeAvailability,
   doctorList,
@@ -252,4 +291,5 @@ export {
   doctorDashboard,
   getPatientReportCard,
   saveOrUpdatePatientReportCard,
+  changePassword,
 };
