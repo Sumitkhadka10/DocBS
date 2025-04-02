@@ -5,6 +5,16 @@ import doctorModel from "../models/doctorModel.js";
 import jwt from "jsonwebtoken";
 import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
+import nodemailer from "nodemailer";
+
+// Configure Nodemailer
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 // API for adding doctor
 const addDoctor = async (req, res) => {
@@ -44,6 +54,14 @@ const addDoctor = async (req, res) => {
       return res
         .status(400)
         .json({ success: false, message: "Please enter a valid email" });
+    }
+
+    // Check if email already exists
+    const existingDoctor = await doctorModel.findOne({ email });
+    if (existingDoctor) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email already registered" });
     }
 
     // Validate password length
@@ -88,9 +106,28 @@ const addDoctor = async (req, res) => {
     const newDoctor = new doctorModel(doctorData);
     await newDoctor.save();
 
+    // Send email to the doctor with credentials
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Welcome to Doctor Booking System - Your Login Credentials",
+      html: `
+        <p>Dear Dr. ${name},</p>
+        <p>Welcome to the Doctor Booking System! You have been added as a doctor by the admin. Below are your login credentials:</p>
+        <ul>
+          <li><strong>Email:</strong> ${email}</li>
+          <li><strong>Password:</strong> ${password}</li>
+        </ul>
+        <p>Please log in at <a href="${process.env.FRONTEND_URL}/login">${process.env.FRONTEND_URL}/login</a> using these credentials. We recommend changing your password after your first login for security purposes.</p>
+        <p>Best regards,<br/>Doctor Booking System Team</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
     res
       .status(201)
-      .json({ success: true, message: "Doctor Added Successfully" });
+      .json({ success: true, message: "Doctor Added Successfully. Credentials sent to doctor's email." });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
@@ -125,7 +162,7 @@ const loginAdmin = async (req, res) => {
 const allDoctors = async (req, res) => {
   try {
     const doctors = await doctorModel.find({}).select("-password");
-    res.json({ success: true, doctors }); // Fixed typo: sucess -> success
+    res.json({ success: true, doctors });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
@@ -136,7 +173,7 @@ const allDoctors = async (req, res) => {
 const appointmentsAdmin = async (req, res) => {
   try {
     const appointments = await appointmentModel.find({});
-    res.json({ success: true, appointments }); // Fixed typo: sucess -> success
+    res.json({ success: true, appointments });
   } catch (error) {
     console.error(error);
     res.json({ success: false, message: error.message });
