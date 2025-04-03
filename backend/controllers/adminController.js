@@ -110,18 +110,20 @@ const addDoctor = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: "Welcome to Doctor Booking System - Your Login Credentials",
+      subject: "Welcome to the Doctor Booking System - Your Login Credentials",
       html: `
-        <p>Dear Dr. ${name},</p>
-        <p>Welcome to the Doctor Booking System! You have been added as a doctor by the admin. Below are your login credentials:</p>
+        <p>Dear ${name},</p>
+        <p>Welcome to the <strong>Doctor Booking System</strong>! You have been successfully added as a doctor by the admin. Below are your login credentials:</p>
         <ul>
           <li><strong>Email:</strong> ${email}</li>
           <li><strong>Password:</strong> ${password}</li>
         </ul>
-        <p>Please log in at <a href="${process.env.FRONTEND_URL}/login">${process.env.FRONTEND_URL}/login</a> using these credentials. We recommend changing your password after your first login for security purposes.</p>
-        <p>Best regards,<br/>Doctor Booking System Team</p>
+        <p>You can log in using the following link: <a href="${process.env.ADMIN_DOCTOR}/login">${process.env.ADMIN_DOCTOR}/login</a>.</p>
+        <p>For security reasons, we strongly recommend changing your password after your first login.</p>
+        <p>Best regards,<br/>The Doctor Booking System Team</p>
       `,
     };
+    
 
     await transporter.sendMail(mailOptions);
 
