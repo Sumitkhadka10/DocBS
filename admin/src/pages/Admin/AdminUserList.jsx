@@ -9,6 +9,7 @@ const AdminUserList = () => {
   const [sortOrder, setSortOrder] = useState('asc');
   const [filterGender, setFilterGender] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null); // State for selected user
 
   useEffect(() => {
     if (aToken) {
@@ -32,10 +33,17 @@ const AdminUserList = () => {
     result.sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
-        case 'name': comparison = a.name.localeCompare(b.name); break;
-        case 'email': comparison = a.email.localeCompare(b.email); break;
-        case 'dob': comparison = new Date(a.dob) - new Date(b.dob); break;
-        default: comparison = a.name.localeCompare(b.name);
+        case 'name': 
+          comparison = a.name.localeCompare(b.name); 
+          break;
+        case 'email': 
+          comparison = a.email.localeCompare(b.email); 
+          break;
+        case 'dob': 
+          comparison = new Date(a.dob) - new Date(b.dob); 
+          break;
+        default: 
+          comparison = a.name.localeCompare(b.name);
       }
       return sortOrder === 'asc' ? comparison : -comparison;
     });
@@ -59,9 +67,18 @@ const AdminUserList = () => {
     setSortOrder('asc');
   };
 
+  const handleUserClick = (user) => {
+    setSelectedUser(user); // Set the clicked user to show in modal
+  };
+
+  const closeModal = () => {
+    setSelectedUser(null); // Close the modal by clearing the selected user
+  };
+
   return (
     <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 flex justify-center">
       <div className="w-full max-w-screen-2xl mx-auto max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 bg-white p-4 rounded-md shadow-md border border-gray-200">
           <div className="flex items-center gap-4 mb-4 sm:mb-0">
             <div className="h-12 w-12 rounded-md bg-gradient-to-r from-blue-600 to-blue-500 flex items-center justify-center">
@@ -102,6 +119,7 @@ const AdminUserList = () => {
           </div>
         </div>
 
+        {/* Filters */}
         {showFilters && (
           <div className="bg-white p-5 rounded-md mb-6 border border-gray-200 shadow-md">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -150,6 +168,7 @@ const AdminUserList = () => {
           </div>
         )}
 
+        {/* User List */}
         <div className="bg-white rounded-md shadow-md border border-gray-200 flex-grow overflow-hidden">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-blue-50">
             <p className="text-sm text-gray-500">
@@ -183,7 +202,8 @@ const AdminUserList = () => {
                 {filteredUsers.slice(0, 50).map((user, index) => (
                   <div 
                     key={index}
-                    className="bg-white border border-gray-200 rounded-md p-4 hover:shadow-md hover:bg-blue-50 transition-all duration-200 min-w-[250px]"
+                    onClick={() => handleUserClick(user)}
+                    className="bg-white border border-gray-200 rounded-md p-4 hover:shadow-md hover:bg-blue-50 transition-all duration-200 min-w-[250px] cursor-pointer"
                   >
                     <div className="flex items-center gap-3 mb-4">
                       <img
@@ -230,6 +250,50 @@ const AdminUserList = () => {
             )}
           </div>
         </div>
+
+        {/* Modal for User Details */}
+        {selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-700">User Details</h2>
+                <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <img
+                    className="h-16 w-16 rounded-full object-cover border-2 border-gray-200"
+                    src={selectedUser.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name)}&background=3B82F6&color=fff`}
+                    alt={selectedUser.name}
+                    onError={(e) => {
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name)}&background=3B82F6&color=fff`;
+                    }}
+                  />
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-700">{selectedUser.name}</h3>
+                    <p className="text-sm text-gray-500 capitalize">{selectedUser.gender}</p>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-700 space-y-2">
+                  <p><span className="font-medium text-blue-600">Email:</span> {selectedUser.email}</p>
+                  <p><span className="font-medium text-blue-600">Phone:</span> {selectedUser.phone}</p>
+                  <p><span className="font-medium text-blue-600">DOB:</span> {selectedUser.dob}</p>
+                  {/* Add more fields here if available in your user object */}
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
