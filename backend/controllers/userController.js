@@ -321,7 +321,7 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
     notificationTime = new Date(appointmentDateTime - 15 * 60 * 1000);
   }
 
-  const message = `Reminder: Your appointment with Dr. ${docName} is scheduled for ${slotTime} on ${day}/${month}/${year}.`;
+  const message = `Reminder: Your appointment with  ${docName} is scheduled for ${slotTime} on ${day}/${month}/${year}.`;
   const notification = new notificationModel({
     userId,
     appointmentId,
@@ -331,7 +331,7 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
 
   const io = req.app.get("io");
   scheduleJob(notificationTime, async () => {
-    const reminderMessage = `Upcoming: Your appointment with Dr. ${docName} is in 15 minutes at ${slotTime} on ${day}/${month}/${year}.`;
+    const reminderMessage = `Upcoming: Your appointment with  ${docName} is in 15 minutes at ${slotTime} on ${day}/${month}/${year}.`;
     const reminderNotification = new notificationModel({
       userId,
       appointmentId,
