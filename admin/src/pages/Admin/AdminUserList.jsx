@@ -1,21 +1,68 @@
-import React, { useContext, useEffect, useState, useMemo } from 'react';
+import React, { useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { AdminContext } from '../../context/AdminContext';
+import { AppContext } from '../../context/AppContext';
 import { Search, X, Filter, ChevronDown, Users } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const AdminUserList = () => {
-  const { users, aToken, getAllUsers } = useContext(AdminContext);
+  const { users, aToken, getAllUsers, appointments, getAllAppointments } = useContext(AdminContext);
+  const { slotDateFormat } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [filterGender, setFilterGender] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null); // State for selected user
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState(null);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    if (!aToken) {
+      setFetchError("No admin token found. Please log in again.");
+      toast.error("No admin token found. Please log in again.");
+      return;
+    }
+
+    if (hasFetched) {
+      console.log("Skipping fetch: Data already loaded.");
+      return;
+    }
+
+    setIsLoading(true);
+    setFetchError(null);
+    try {
+      console.log("Starting data fetch at:", new Date().toISOString());
+      await Promise.all([getAllUsers(), getAllAppointments()]);
+      console.log("Data fetch completed at:", new Date().toISOString());
+      setHasFetched(true);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || "Unknown network error";
+      console.error("Fetch error:", {
+        message: errorMessage,
+        status: error.response?.status,
+        data: error.response?.data,
+        time: new Date().toISOString(),
+      });
+      setFetchError(`Failed to load data: ${errorMessage}`);
+      toast.error(`Failed to load data: ${errorMessage}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [aToken, getAllUsers, getAllAppointments, hasFetched]);
 
   useEffect(() => {
-    if (aToken) {
-      getAllUsers();
-    }
-  }, [aToken, getAllUsers]);
+    console.log("Component mounted at:", new Date().toISOString());
+    fetchData();
+    return () => console.log("Component unmounted at:", new Date().toISOString());
+  }, [fetchData]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log("Checking state after", new Date().toISOString(), "- Users:", users?.length, "Appointments:", appointments?.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [users, appointments]);
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
@@ -68,12 +115,16 @@ const AdminUserList = () => {
   };
 
   const handleUserClick = (user) => {
-    setSelectedUser(user); // Set the clicked user to show in modal
+    setSelectedUser(user);
   };
 
   const closeModal = () => {
-    setSelectedUser(null); // Close the modal by clearing the selected user
+    setSelectedUser(null);
   };
+
+  const userAppointments = selectedUser
+    ? appointments.filter(appointment => appointment.userData?._id === selectedUser._id)
+    : [];
 
   return (
     <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 flex justify-center">
@@ -172,7 +223,7 @@ const AdminUserList = () => {
         <div className="bg-white rounded-md shadow-md border border-gray-200 flex-grow overflow-hidden">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-blue-50">
             <p className="text-sm text-gray-500">
-              Showing {Math.min(50, filteredUsers.length)} of {filteredUsers.length} users
+              {isLoading ? 'Loading...' : fetchError ? fetchError : `Showing ${Math.min(50, filteredUsers.length)} of ${filteredUsers.length} users`}
             </p>
             <div className="flex gap-2">
               <button 
@@ -211,6 +262,7 @@ const AdminUserList = () => {
                         src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3B82F6&color=fff`}
                         alt={user.name}
                         onError={(e) => {
+                          console.log(`Image failed to load for user ${user.name}:`, e);
                           e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3B82F6&color=fff`;
                         }}
                       />
@@ -238,23 +290,35 @@ const AdminUserList = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <p className="text-base font-medium text-gray-700 mb-3">No users found</p>
-                <p className="text-sm text-gray-500 mb-4">Try adjusting your search or filters</p>
-                <button 
-                  onClick={clearFilters}
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Reset All Filters
-                </button>
+                <p className="text-base font-medium text-gray-700 mb-3">{isLoading ? 'Loading users...' : fetchError ? 'Error loading users' : 'No users found'}</p>
+                {!isLoading && !fetchError && (
+                  <>
+                    <p className="text-sm text-gray-500 mb-4">Try adjusting your search or filters</p>
+                    <button 
+                      onClick={clearFilters}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Reset All Filters
+                    </button>
+                  </>
+                )}
+                {fetchError && (
+                  <button 
+                    onClick={() => { setHasFetched(false); fetchData(); }}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium mt-4"
+                  >
+                    Retry
+                  </button>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Modal for User Details */}
+        {/* Modal for User Details and Appointments */}
         {selectedUser && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-md p-6 w-full max-w-md shadow-lg">
+            <div className="bg-white rounded-md p-6 w-full max-w-2xl shadow-lg max-h-[80vh] overflow-y-auto">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-700">User Details</h2>
                 <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">
@@ -268,6 +332,7 @@ const AdminUserList = () => {
                     src={selectedUser.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name)}&background=3B82F6&color=fff`}
                     alt={selectedUser.name}
                     onError={(e) => {
+                      console.log(`Modal image failed for user ${selectedUser.name}:`, e);
                       e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedUser.name)}&background=3B82F6&color=fff`;
                     }}
                   />
@@ -276,11 +341,51 @@ const AdminUserList = () => {
                     <p className="text-sm text-gray-500 capitalize">{selectedUser.gender}</p>
                   </div>
                 </div>
-                <div className="text-sm text-gray-700 space-y-2">
+                <div className="text-sm font-normal text-gray-700 space-y-2">
                   <p><span className="font-medium text-blue-600">Email:</span> {selectedUser.email}</p>
                   <p><span className="font-medium text-blue-600">Phone:</span> {selectedUser.phone}</p>
                   <p><span className="font-medium text-blue-600">DOB:</span> {selectedUser.dob}</p>
-                  {/* Add more fields here if available in your user object */}
+                </div>
+
+                {/* Appointments Section */}
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Appointments</h3>
+                  {userAppointments.length > 0 ? (
+                    <div className="space-y-4">
+                      {userAppointments.map((appointment, index) => (
+                        <div key={index} className="border border-gray-200 rounded-md p-4 bg-gray-50 flex items-start gap-4">
+                          <div className="flex-shrink-0">
+                            <img
+                              className="h-12 w-12 rounded-full object-cover border-2 border-gray-200 shadow-md"
+                              src={appointment.docData?.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(appointment.docData?.name || 'Unknown')}&background=3B82F6&color=fff`}
+                              alt={appointment.docData?.name || 'Unknown'}
+                              onError={(e) => {
+                                console.log(`Doctor image failed for ${appointment.docData?.name || 'Unknown'}:`, e);
+                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(appointment.docData?.name || 'Unknown')}&background=3B82F6&color=fff`;
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 text-sm font-normal text-gray-700 space-y-2">
+                            <p><span className="font-medium text-blue-600">Doctor:</span> {appointment.docData?.name || 'Unknown'}</p>
+                            <p><span className="font-medium text-blue-600">Date:</span> {slotDateFormat(appointment.slotDate)}</p>
+                            <p><span className="font-medium text-blue-600">Time:</span> {appointment.slotTime}</p>
+                            <p>
+                              <span className="font-medium text-blue-600">Status:</span> 
+                              {appointment.cancelled ? 'Cancelled' : appointment.isCompleted ? 'Completed' : 'Active'}
+                            </p>
+                            {appointment.cancelled && (
+                              <p>
+                                <span className="font-medium text-blue-600">Cancellation Reason:</span> 
+                                {appointment.cancellationReason || 'No reason provided'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-normal text-gray-700">No appointments found for this user.</p>
+                  )}
                 </div>
               </div>
               <div className="mt-6 flex justify-end">
