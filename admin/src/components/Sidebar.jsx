@@ -153,7 +153,7 @@ const Sidebar = () => {
                                     </div>
                                     <div>
                                         <p className="text-sm font-medium text-gray-800">Admin User</p>
-                                        <p className="text-xs text-gray-500">admin@doctorbooking.com</p>
+                                        <p className="text-xs text-gray-500">doctorbookingsystem2025@gmail.com</p>
                                     </div>
                                 </div>
                             </div>
