@@ -16,13 +16,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Function to generate random password
+const generateRandomPassword = () => {
+  const length = 12;
+  const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < length; i++) {
+    password += charset.charAt(Math.floor(Math.random() * charset.length));
+  }
+  return password;
+};
+
 // API for adding doctor
 const addDoctor = async (req, res) => {
   try {
     const {
       name,
       email,
-      password,
       speciality,
       degree,
       experience,
@@ -36,7 +46,6 @@ const addDoctor = async (req, res) => {
     if (
       !name ||
       !email ||
-      !password ||
       !speciality ||
       !degree ||
       !experience ||
@@ -64,15 +73,8 @@ const addDoctor = async (req, res) => {
         .json({ success: false, message: "Email already registered" });
     }
 
-    // Validate password length
-    if (password.length < 8) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password should be at least 8 characters",
-        });
-    }
+    // Generate random password
+    const password = generateRandomPassword();
 
     // Hash password
     const salt = await bcrypt.genSalt(10);
@@ -123,13 +125,13 @@ const addDoctor = async (req, res) => {
         <p>Best regards,<br/>The Doctor Booking System Team</p>
       `,
     };
-    
 
     await transporter.sendMail(mailOptions);
 
-    res
-      .status(201)
-      .json({ success: true, message: "Doctor Added Successfully. Credentials sent to doctor's email." });
+    res.status(201).json({
+      success: true,
+      message: "Doctor Added Successfully. Credentials sent to doctor's email.",
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: error.message });
@@ -187,9 +189,11 @@ const appointmentCancel = async (req, res) => {
   try {
     const { appointmentId, cancellationReason } = req.body;
 
-    // Check if cancellation reason is provided
     if (!cancellationReason) {
-      return res.json({ success: false, message: "Cancellation reason is required" });
+      return res.json({
+        success: false,
+        message: "Cancellation reason is required",
+      });
     }
 
     const appointmentData = await appointmentModel.findById(appointmentId);
@@ -197,17 +201,17 @@ const appointmentCancel = async (req, res) => {
       return res.json({ success: false, message: "Appointment not found" });
     }
 
-    // Update appointment with cancellation status and reason
     await appointmentModel.findByIdAndUpdate(appointmentId, {
       cancelled: true,
       cancellationReason,
     });
 
-    // Release doctor's slot
     const { docId, slotDate, slotTime } = appointmentData;
     const doctorData = await doctorModel.findById(docId);
     let slots_booked = doctorData.slots_booked;
-    slots_booked[slotDate] = slots_booked[slotDate].filter((e) => e !== slotTime);
+    slots_booked[slotDate] = slots_booked[slotDate].filter(
+      (e) => e !== slotTime
+    );
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
     res.json({ success: true, message: "Appointment Cancelled Successfully" });
@@ -249,4 +253,12 @@ const adminDashboard = async (req, res) => {
   }
 };
 
-export { addDoctor, loginAdmin, allDoctors, appointmentsAdmin, appointmentCancel, getAllUsers, adminDashboard };
+export {
+  addDoctor,
+  loginAdmin,
+  allDoctors,
+  appointmentsAdmin,
+  appointmentCancel,
+  getAllUsers,
+  adminDashboard,
+};
