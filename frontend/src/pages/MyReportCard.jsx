@@ -6,6 +6,8 @@ import { usePDF } from "react-to-pdf";
 import { AppContext } from '../context/AppContext';
 import { assets } from "../assets/assets";
 import "./MyReportCard.css";
+import { CKEditor } from '@ckeditor/ckeditor5-react';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 
 const createIcon = (pathContent, className = "text-indigo-600") => ({ size = 20 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -100,9 +102,9 @@ const MyReportCard = () => {
   const parseCustomDate = (dateStr) => {
     if (typeof dateStr === "string" && dateStr.includes("_")) {
       const [day, month, year] = dateStr.split("_").map(Number);
-      const dateObj = new Date(Date.UTC(year, month - 1, day)); // Use UTC to avoid timezone shifts
+      const dateObj = new Date(Date.UTC(year, month - 1, day));
       if (!isNaN(dateObj.getTime())) {
-        return dateObj.toISOString().split("T")[0]; // Returns "YYYY-MM-DD"
+        return dateObj.toISOString().split("T")[0];
       }
     }
     const dateObj = new Date(dateStr);
@@ -110,7 +112,7 @@ const MyReportCard = () => {
       return dateObj.toISOString().split("T")[0];
     }
     console.error("Unparseable date value:", dateStr);
-    return dateStr; // Fallback
+    return dateStr;
   };
 
   const loadReportData = (reports, index) => {
@@ -459,15 +461,58 @@ const MyReportCard = () => {
                   </h2>
                   <div className="border border-gray-200 rounded-lg bg-gray-50 p-4">
                     {isEditing && !isDoctorGenerated ? (
-                      <textarea
-                        className="w-full min-h-64 font-sans text-gray-700 rounded-lg bg-transparent outline-none resize-none"
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        placeholder="Enter medical notes here..."
-                        disabled={loading}
-                      />
+                      <div className="border rounded-lg overflow-hidden shadow-sm">
+                        <CKEditor
+                          editor={ClassicEditor}
+                          data={content}
+                          onChange={(event, editor) => {
+                            const data = editor.getData();
+                            setContent(data);
+                          }}
+                          config={{
+                            toolbar: [
+                              'heading',
+                              '|',
+                              'bold',
+                              'italic',
+                              'underline',
+                              'strikethrough',
+                              '|',
+                              'bulletedList',
+                              'numberedList',
+                              '|',
+                              'blockQuote',
+                              'insertTable',
+                              '|',
+                              'undo',
+                              'redo',
+                            ],
+                            heading: {
+                              options: [
+                                { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                                { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                                { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                                { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' },
+                              ],
+                            },
+                            table: {
+                              contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
+                            },
+                            height: '400px', // Match DoctorReportCard height
+                          }}
+                          disabled={loading}
+                          onReady={(editor) => {
+                            editor.editing.view.change((writer) => {
+                              writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
+                            });
+                          }}
+                        />
+                      </div>
                     ) : (
-                      <div className="w-full min-h-64 font-sans text-gray-700">{content}</div>
+                      <div
+                        className="w-full min-h-[400px] font-sans text-gray-700 p-2"
+                        dangerouslySetInnerHTML={{ __html: content || 'No notes available' }}
+                      />
                     )}
                   </div>
                 </div>
