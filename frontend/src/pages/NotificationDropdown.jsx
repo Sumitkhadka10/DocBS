@@ -13,7 +13,6 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   const [socket, setSocket] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch notifications from the backend
   const fetchNotifications = async () => {
     if (!token) return;
     try {
@@ -25,12 +24,11 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
         setUnreadCount(data.notifications.filter((n) => !n.isRead).length);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching notifications:", error);
       toast.error(error.message || "Failed to fetch notifications");
     }
   };
 
-  // Mark a single notification as read
   const markAsRead = async (notificationId) => {
     try {
       const { data } = await axios.post(
@@ -48,12 +46,11 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
         toast.error(data.message);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error marking notification as read:", error);
       toast.error(error.message || "Failed to mark notification as read");
     }
   };
 
-  // Format timestamp for display
   const formatTimestamp = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -70,10 +67,8 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
-  // Custom toast component for report card notification
   const ReportCardToast = ({ message, appointmentId, closeToast }) => {
     const navigate = useNavigate();
-
     return (
       <div className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-md border border-gray-200 max-w-sm">
         <FileText className="w-6 h-6 text-blue-500 flex-shrink-0" />
@@ -105,10 +100,8 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     );
   };
 
-  // Custom toast component for appointment reminder
   const AppointmentReminderToast = ({ message, appointmentId, closeToast }) => {
     const navigate = useNavigate();
-
     return (
       <div className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-md border border-gray-200 max-w-sm">
         <Calendar className="w-6 h-6 text-green-500 flex-shrink-0" />
@@ -150,39 +143,64 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     // Fetch initial notifications
     fetchNotifications();
 
-    // Initialize WebSocket connection
-    const newSocket = io(backendUrl, { auth: { token } });
+    // Setup Socket.IO with reconnection
+    const newSocket = io(backendUrl, {
+      auth: { token },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
     setSocket(newSocket);
 
-    newSocket.emit("joinRoom", userData._id);
+    // Log connection status
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+      newSocket.emit("joinRoom", userData._id);
+    });
 
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    // Handle new notifications
     newSocket.on("newNotification", (notification) => {
-      // Update both notifications list and unread count
+      console.log("New notification received:", notification);
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
 
-      // Determine notification type and show appropriate toast
-      const ToastComponent = notification.type === "appointment_reminder"
-        ? AppointmentReminderToast
-        : ReportCardToast;
+      const toastOptions = {
+        position: "top-right",
+        autoClose: 7000, // Auto-close after 7 seconds
+        hideProgressBar: true,
+        closeOnClick: false,
+        pauseOnHover: true,
+        className: "bg-transparent p-0",
+        bodyClassName: "flex items-start",
+        toastId: notification._id, // Unique ID to prevent duplicates
+      };
 
-      toast(
-        <ToastComponent
-          message={notification.message}
-          appointmentId={notification.appointmentId}
-        />,
-        {
-          position: "top-right",
-          autoClose: 7000,
-          hideProgressBar: true,
-          closeOnClick: false,
-          pauseOnHover: true,
-          className: "bg-transparent p-0",
-          bodyClassName: "flex items-start",
-        }
-      );
+      if (notification.type === "appointment_reminder") {
+        toast(
+          <AppointmentReminderToast
+            message={notification.message}
+            appointmentId={notification.appointmentId}
+          />,
+          toastOptions
+        );
+      } else if (notification.type === "report_card_available") {
+        toast(
+          <ReportCardToast
+            message={notification.message}
+            appointmentId={notification.appointmentId}
+          />,
+          toastOptions
+        );
+      } else {
+        console.warn("Unknown notification type:", notification.type);
+      }
     });
 
+    // Handle read notifications
     newSocket.on("notificationRead", (notificationId) => {
       setNotifications((prev) =>
         prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
@@ -190,12 +208,13 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       setUnreadCount((prev) => Math.max(prev - 1, 0));
     });
 
+    // Cleanup on unmount
     return () => {
+      console.log("Disconnecting socket...");
       newSocket.disconnect();
     };
   }, [token, userData, backendUrl, navigate]);
 
-  // Refresh notifications when dropdown opens
   useEffect(() => {
     if (isOpen) {
       fetchNotifications();
