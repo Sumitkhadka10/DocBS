@@ -65,7 +65,9 @@ const MyReportCard = () => {
   useEffect(() => {
     const filtered = reportCards.filter(report => {
       if (filters.date && report.date) {
-        if (!report.date.toLowerCase().includes(filters.date.toLowerCase())) return false;
+        const reportDate = new Date(parseCustomDate(report.date)).toISOString().split('T')[0];
+        const filterDate = new Date(filters.date).toISOString().split('T')[0];
+        if (reportDate !== filterDate) return false;
       }
       if (filters.doctorName && report.doctorName) {
         if (!report.doctorName.toLowerCase().includes(filters.doctorName.toLowerCase())) return false;
@@ -86,7 +88,6 @@ const MyReportCard = () => {
       const response = await axios.get(`${backendUrl}/api/user/report-cards`, { headers: { token } });
       if (response.data.success) {
         const reports = response.data.reportCards || [];
-        console.log("Fetched Report Cards:", reports);
         const sortedReports = reports.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setReportCards(sortedReports);
       } else throw new Error(response.data.message || "Failed to fetch report cards");
@@ -115,6 +116,14 @@ const MyReportCard = () => {
     return dateStr;
   };
 
+  const formatReportDate = (dateStr) => {
+    const dateObj = new Date(parseCustomDate(dateStr));
+    if (!isNaN(dateObj.getTime())) {
+      return dateObj.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    }
+    return "Date not available";
+  };
+
   const loadReportData = (reports, index) => {
     if (reports.length > 0 && index >= 0 && index < reports.length) {
       const report = reports[index];
@@ -133,7 +142,7 @@ const MyReportCard = () => {
       setDoctorName("");
       setAppointmentTime("");
       setContent("");
-      setIsEditing(true);
+      setIsEditing(false);
       setUnsavedChanges(false);
       setIsDoctorGenerated(false);
     }
@@ -264,7 +273,7 @@ const MyReportCard = () => {
     "Health is not valued until sickness comes.",
     "Early to bed and early to rise makes a man healthy, wealthy, and wise."
   ];
-  const formattedDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const currentDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   const hasData = filteredReportCards.length > 0 && currentIndex < filteredReportCards.length;
 
   const InputGroup = ({ label, type, value, onChange, icon: Icon, disabled }) => {
@@ -301,7 +310,7 @@ const MyReportCard = () => {
       <div className="max-w-4xl mx-auto">
         <div className="bg-indigo-900 text-white p-3 rounded-t-xl flex justify-between items-center">
           <div className="text-lg font-bold">Doctor Booking System</div>
-          <div className="text-indigo-200 text-sm">{formattedDate}</div>
+          <div className="text-indigo-200 text-sm">{currentDate}</div>
         </div>
         <div className="bg-white rounded-b-xl shadow-2xl overflow-hidden border-x border-b border-indigo-100">
           <div className="bg-gradient-to-r from-indigo-600 to-blue-600 p-6 text-white relative">
@@ -332,12 +341,11 @@ const MyReportCard = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
                   <div className="relative">
                     <input
-                      type="text"
+                      type="date"
                       name="date"
                       value={filters.date}
                       onChange={handleFilterChange}
-                      placeholder="YYYY-MM-DD"
-                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focius:ring-indigo-500 focus:border-transparent transition-all duration-200 bg-gray-50 hover:bg-white"
                     />
                     <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -366,7 +374,26 @@ const MyReportCard = () => {
             {loading && <p className="text-gray-500">Loading...</p>}
             {error && <p className="text-red-500">{error}</p>}
             
-            {filteredReportCards.length === 0 && !isEditing && !loading && (
+            {reportCards.length === 0 && !loading && (
+              <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                <div className="relative w-20 h-20 mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full blur-lg opacity-20"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg className="w-12 h-12 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <p className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">
+                  No report cards available
+                </p>
+                <p className="text-base text-gray-500 mt-2">
+                  There are no report cards to display. Please create a new report card.
+                </p>
+              </div>
+            )}
+
+            {reportCards.length > 0 && filteredReportCards.length === 0 && !loading && (
               <div className="flex flex-col items-center justify-center h-64 text-gray-400">
                 <div className="relative w-20 h-20 mb-6">
                   <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full blur-lg opacity-20"></div>
@@ -380,14 +407,12 @@ const MyReportCard = () => {
                   No report cards found
                 </p>
                 <p className="text-base text-gray-500 mt-2">
-                  {filters.date || filters.doctorName
-                    ? "No report cards match your filters. Try adjusting the filters."
-                    : "You have no report cards. Create a new one by clicking 'Next'."}
+                  No report cards match your filters. Try adjusting the filters.
                 </p>
               </div>
             )}
 
-            {(filteredReportCards.length > 0 || isEditing) && (
+            {(filteredReportCards.length > 0 || (reportCards.length > 0 && isEditing)) && (
               <div ref={targetRef} className="pdf-content">
                 <div className="pdf-header flex justify-between items-center mb-6">
                   <div className="flex items-center">
@@ -397,7 +422,9 @@ const MyReportCard = () => {
                       alt="Logo" 
                     />
                   </div>
-                  <div className="text-sm text-gray-600">Generated on: {formattedDate}</div>
+                  <div className="text-sm text-gray-600">
+                    Generated on: {date ? formatReportDate(date) : currentDate}
+                  </div>
                 </div>
 
                 <div className="p-6 border border-gray-200 rounded-lg mb-6">
@@ -498,7 +525,7 @@ const MyReportCard = () => {
                             table: {
                               contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
                             },
-                            height: '400px', // Match DoctorReportCard height
+                            height: '400px',
                           }}
                           disabled={loading}
                           onReady={(editor) => {
@@ -528,7 +555,7 @@ const MyReportCard = () => {
               </div>
             )}
 
-            {(filteredReportCards.length > 0 || isEditing) && (
+            {(filteredReportCards.length > 0 || (reportCards.length > 0 && isEditing)) && (
               <div className="no-print">
                 <div className="flex justify-center gap-4 mb-6">
                   {!isEditing && !isDoctorGenerated && (
