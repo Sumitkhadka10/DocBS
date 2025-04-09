@@ -16,14 +16,7 @@ const DoctorReportCard = ({ appointmentId, patientName, onClose }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [fontFamily, setFontFamily] = useState('Arial');
   const [isSaving, setIsSaving] = useState(false);
-
-  const fontOptions = [
-    { value: 'Arial', label: 'Arial' },
-    { value: 'Times New Roman', label: 'Times New Roman' },
-    { value: 'Roboto', label: 'Roboto' },
-  ];
 
   useEffect(() => {
     const initializeReportCard = async () => {
@@ -56,12 +49,20 @@ const DoctorReportCard = ({ appointmentId, patientName, onClose }) => {
         }
 
         const reportCard = await getPatientReportCard(appointmentId);
-        if (reportCard) {
+        if (reportCard && reportCard.content) {
           setDate(reportCard.date || appointment.slotDate);
           setDoctorName(reportCard.doctorName || (profileData ? profileData.name : 'Unknown Doctor'));
           setAppointmentTime(reportCard.appointmentTime || appointment.slotTime);
-          setContent(reportCard.content || '');
-          setOriginalContent(reportCard.content || '');
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(reportCard.content, 'text/html');
+          const wrapper = doc.querySelector('.report-content');
+          if (wrapper) {
+            setContent(wrapper.innerHTML);
+            setOriginalContent(wrapper.innerHTML);
+          } else {
+            setContent(reportCard.content);
+            setOriginalContent(reportCard.content);
+          }
           setIsEditing(false);
         } else {
           setDoctorName(profileData ? profileData.name : 'Unknown Doctor');
@@ -81,16 +82,29 @@ const DoctorReportCard = ({ appointmentId, patientName, onClose }) => {
     initializeReportCard();
   }, [appointmentId, getPatientReportCard, profileData, getProfileData, dToken, backendUrl, isInitialized]);
 
+  const wrapContentWithStyles = (rawContent) => {
+    return `<div class="report-content">${rawContent || ''}</div>`;
+  };
+
+  const extractContent = (styledContent) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(styledContent || '<div></div>', 'text/html');
+    const wrapper = doc.querySelector('.report-content');
+    return wrapper ? wrapper.innerHTML : styledContent;
+  };
+
   const handleSave = async () => {
-    if (!date || !doctorName || !appointmentTime || !content) {
+    if (!date || !doctorName || !appointmentTime || content === undefined) {
       toast.error('All fields are required');
       return;
     }
     setIsSaving(true);
     try {
-      const reportData = { date, doctorName, appointmentTime, content };
+      const styledContent = wrapContentWithStyles(content);
+      const reportData = { date, doctorName, appointmentTime, content: styledContent };
       await saveOrUpdateReportCard(appointmentId, reportData);
       setOriginalContent(content);
+      setContent(content);
       setIsEditing(false);
       toast.success('Report card saved successfully');
     } catch (error) {
@@ -108,10 +122,6 @@ const DoctorReportCard = ({ appointmentId, patientName, onClose }) => {
 
   const handleEdit = () => {
     setIsEditing(true);
-  };
-
-  const handleFontChange = (e) => {
-    setFontFamily(e.target.value);
   };
 
   return (
@@ -170,21 +180,6 @@ const DoctorReportCard = ({ appointmentId, patientName, onClose }) => {
             {/* Medical Notes */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Medical Notes</label>
-              {isEditing && (
-                <div className="flex gap-2 mb-2">
-                  <select
-                    value={fontFamily}
-                    onChange={handleFontChange}
-                    className="p-1 border rounded text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  >
-                    {fontOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
               {isEditing ? (
                 <div className="border rounded-lg overflow-hidden shadow-sm">
                   <CKEditor
@@ -223,16 +218,8 @@ const DoctorReportCard = ({ appointmentId, patientName, onClose }) => {
                       table: {
                         contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells'],
                       },
-                      fontFamily: {
-                        options: fontOptions.map((option) => option.value),
-                        supportAllValues: true,
-                      },
-                      // Set a larger height for the editor
-                      height: '400px', // Increased from default (~200px) to 400px
                     }}
-                    disabled={!isEditing}
                     onReady={(editor) => {
-                      // Ensure the editor's editable area has a minimum height
                       editor.editing.view.change((writer) => {
                         writer.setStyle('min-height', '400px', editor.editing.view.document.getRoot());
                       });
@@ -241,8 +228,7 @@ const DoctorReportCard = ({ appointmentId, patientName, onClose }) => {
                 </div>
               ) : (
                 <div
-                  className="w-full p-4 border rounded bg-gray-50 text-gray-900 min-h-[400px]" // Match height for consistency
-                  style={{ fontFamily }}
+                  className="w-full p-4 border rounded bg-gray-50 text-gray-900 min-h-[400px]"
                   dangerouslySetInnerHTML={{ __html: content || 'No notes available' }}
                 />
               )}
