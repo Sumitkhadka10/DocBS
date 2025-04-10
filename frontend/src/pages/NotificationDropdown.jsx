@@ -3,9 +3,11 @@ import { AppContext } from "../context/AppContext.jsx";
 import axios from "axios";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
 import { Bell, FileText, Calendar } from "lucide-react";
 
+// Notification dropdown component
 const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   const { token, userData, backendUrl } = useContext(AppContext);
   const [notifications, setNotifications] = useState([]);
@@ -13,6 +15,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   const [socket, setSocket] = useState(null);
   const navigate = useNavigate();
 
+  // Fetch notifications from the backend
   const fetchNotifications = async () => {
     if (!token) return;
     try {
@@ -29,6 +32,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     }
   };
 
+  // Mark a notification as read
   const markAsRead = async (notificationId) => {
     try {
       const { data } = await axios.post(
@@ -51,6 +55,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     }
   };
 
+  // Format timestamp for display
   const formatTimestamp = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -67,6 +72,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   };
 
+  // Toast component for report card notifications
   const ReportCardToast = ({ message, appointmentId, closeToast }) => {
     const navigate = useNavigate();
     return (
@@ -81,7 +87,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
           <div className="mt-2 flex space-x-2">
             <button
               onClick={() => {
-                navigate(`/my-report-card`);
+                navigate("/my-report-card"); // Navigate to report card page
                 closeToast();
               }}
               className="text-xs font-medium text-blue-600 hover:text-blue-800 underline transition-colors duration-200"
@@ -100,6 +106,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     );
   };
 
+  // Toast component for appointment reminders
   const AppointmentReminderToast = ({ message, appointmentId, closeToast }) => {
     const navigate = useNavigate();
     return (
@@ -114,7 +121,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
           <div className="mt-2 flex space-x-2">
             <button
               onClick={() => {
-                navigate(`/my-appointments`);
+                navigate("/my-appointments"); // Navigate to appointments page
                 closeToast();
               }}
               className="text-xs font-medium text-green-600 hover:text-green-800 underline transition-colors duration-200"
@@ -133,6 +140,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     );
   };
 
+  // Effect to handle socket connection and notifications
   useEffect(() => {
     if (!token || !userData) {
       setNotifications([]);
@@ -140,10 +148,8 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       return;
     }
 
-    // Fetch initial notifications
     fetchNotifications();
 
-    // Setup Socket.IO with reconnection
     const newSocket = io(backendUrl, {
       auth: { token },
       reconnection: true,
@@ -152,37 +158,37 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
     });
     setSocket(newSocket);
 
-    // Log connection status
     newSocket.on("connect", () => {
       console.log("Socket connected:", newSocket.id);
-      newSocket.emit("joinRoom", userData._id);
+      newSocket.emit("joinRoom", userData._id); // Join user-specific room
     });
 
     newSocket.on("connect_error", (error) => {
       console.error("Socket connection error:", error);
     });
 
-    // Handle new notifications
     newSocket.on("newNotification", (notification) => {
       console.log("New notification received:", notification);
+      console.log("Notification details:", JSON.stringify(notification, null, 2));
       setNotifications((prev) => [notification, ...prev]);
       setUnreadCount((prev) => prev + 1);
 
       const toastOptions = {
         position: "top-right",
-        autoClose: 7000, // Auto-close after 7 seconds
+        autoClose: 7000,
         hideProgressBar: true,
         closeOnClick: false,
         pauseOnHover: true,
         className: "bg-transparent p-0",
         bodyClassName: "flex items-start",
-        toastId: notification._id, // Unique ID to prevent duplicates
+        toastId: notification._id || `fallback-${Date.now()}`,
       };
 
+      // Handle notification type to display appropriate toast
       if (notification.type === "appointment_reminder") {
         toast(
           <AppointmentReminderToast
-            message={notification.message}
+            message={notification.message || "You have an upcoming appointment!"}
             appointmentId={notification.appointmentId}
           />,
           toastOptions
@@ -190,17 +196,17 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       } else if (notification.type === "report_card_available") {
         toast(
           <ReportCardToast
-            message={notification.message}
+            message={notification.message || "A new report card is available!"}
             appointmentId={notification.appointmentId}
           />,
           toastOptions
         );
       } else {
         console.warn("Unknown notification type:", notification.type);
+        toast(notification.message || "New notification received", toastOptions); // Fallback for unknown types
       }
     });
 
-    // Handle read notifications
     newSocket.on("notificationRead", (notificationId) => {
       setNotifications((prev) =>
         prev.map((n) => (n._id === notificationId ? { ...n, isRead: true } : n))
@@ -208,13 +214,13 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       setUnreadCount((prev) => Math.max(prev - 1, 0));
     });
 
-    // Cleanup on unmount
     return () => {
       console.log("Disconnecting socket...");
       newSocket.disconnect();
     };
-  }, [token, userData, backendUrl, navigate]);
+  }, [token, userData, backendUrl]);
 
+  // Refresh notifications when dropdown opens
   useEffect(() => {
     if (isOpen) {
       fetchNotifications();
@@ -248,21 +254,24 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
               No notifications
             </div>
           ) : (
-            notifications.map((notification) => (
-              <NotificationItem
-                key={notification._id}
-                notification={notification}
-                markAsRead={markAsRead}
-                formatTimestamp={formatTimestamp}
-              />
-            ))
+            notifications
+              .slice(0, 5) // Limit to 5 most recent notifications in dropdown
+              .map((notification) => (
+                <NotificationItem
+                  key={notification._id || `fallback-${Date.now()}`}
+                  notification={notification}
+                  markAsRead={markAsRead}
+                  formatTimestamp={formatTimestamp}
+                  navigate={navigate}
+                />
+              ))
           )}
 
           <div className="p-3 text-center">
             <button
               onClick={() => {
                 setIsOpen(false);
-                navigate("/notifications");
+                navigate("/notifications"); // Link to full notifications page
               }}
               className="text-sm text-primary hover:text-primary-dark transition-colors duration-300"
             >
@@ -275,36 +284,66 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
   );
 };
 
-const NotificationItem = ({ notification, markAsRead, formatTimestamp }) => (
-  <div
-    className={`flex items-center p-3 border-b border-gray-100 hover:bg-primary/5 transition-colors duration-300 ${
-      !notification.isRead ? "bg-primary/10" : ""
-    }`}
-  >
-    {!notification.isRead && <div className="w-2 h-2 bg-primary rounded-full mr-2" />}
-    <div className="flex-1">
-      <p
-        className={`text-sm ${
-          notification.isRead
-            ? "text-gray-600 hover:text-gray-700"
-            : "text-gray-900 font-semibold hover:text-primary"
-        } transition-colors duration-300`}
-      >
-        {notification.message}
-      </p>
-      <p className="text-xs text-gray-600 mt-1 hover:text-gray-700 transition-colors duration-300">
-        {formatTimestamp(notification.createdAt)}
-      </p>
+// Individual notification item in the dropdown
+const NotificationItem = ({ notification, markAsRead, formatTimestamp, navigate }) => {
+  const handleItemClick = async (e) => {
+    if (e.target.tagName === "BUTTON") return; // Prevent navigation if clicking "Mark as read" button
+
+    // Navigate based on notification type and mark as read
+    if (notification.type === "appointment_reminder") {
+      navigate("/my-appointments");
+      if (!notification.isRead) {
+        await markAsRead(notification._id); // Mark as read after navigation
+      }
+    } else if (notification.type === "report_card_available") {
+      navigate("/my-report-card");
+      if (!notification.isRead) {
+        await markAsRead(notification._id); // Mark as read after navigation
+      }
+    } else {
+      console.warn("Unknown notification type:", notification.type);
+      navigate("/my-appointments"); // Default fallback
+      if (!notification.isRead) {
+        await markAsRead(notification._id); // Mark as read even for fallback
+      }
+    }
+  };
+
+  return (
+    <div
+      onClick={handleItemClick}
+      className={`flex items-center p-3 border-b border-gray-100 hover:bg-primary/5 transition-colors duration-300 cursor-pointer ${
+        !notification.isRead ? "bg-primary/10" : ""
+      }`}
+    >
+      {!notification.isRead && <div className="w-2 h-2 bg-primary rounded-full mr-2" />}
+      <div className="flex-1">
+        <p
+          className={`text-sm ${
+            notification.isRead
+              ? "text-gray-600 hover:text-gray-700"
+              : "text-gray-900 font-semibold hover:text-primary"
+          } transition-colors duration-300`}
+        >
+          {notification.message || "No message provided"}
+        </p>
+        <p className="text-xs text-gray-600 mt-1 hover:text-gray-700 transition-colors duration-300">
+          {formatTimestamp(notification.createdAt || new Date())}
+        </p>
+      </div>
+      {!notification.isRead && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent triggering handleItemClick
+            markAsRead(notification._id);
+          }}
+          className="ml-2 text-xs text-primary hover:text-primary-dark transition-colors duration-200"
+        >
+          Mark as read
+        </button>
+      )}
     </div>
-    {!notification.isRead && (
-      <button
-        onClick={() => markAsRead(notification._id)}
-        className="ml-2 text-xs text-primary hover:text-primary-dark transition-colors duration-300"
-      >
-        Mark as read
-      </button>
-    )}
-  </div>
-);
+  );
+};
 
 export default NotificationDropdown;
