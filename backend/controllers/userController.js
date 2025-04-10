@@ -9,9 +9,9 @@ import reportCardModel from "../models/ReportCard.js";
 import notificationModel from "../models/notificationModel.js";
 import { scheduleJob } from "node-schedule";
 import nodemailer from "nodemailer";
-import { OAuth2Client } from "google-auth-library"; // Add Google OAuth2 client
+import { OAuth2Client } from "google-auth-library";
 
-// Configure Nodemailer
+// Email transporter setup for verification and password reset
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -20,10 +20,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Google OAuth2 Client
+// Google OAuth2 client for Google login
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// Register User with Email Verification
+// User registration
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -42,7 +42,6 @@ const registerUser = async (req, res) => {
       });
     }
 
-    // Check if email already exists
     const existingUser = await userModel.findOne({ email });
     if (existingUser) {
       return res.json({ success: false, message: "Email already registered" });
@@ -61,21 +60,18 @@ const registerUser = async (req, res) => {
     const newUser = new userModel(userData);
     const user = await newUser.save();
 
-    // Generate verification token
     const verificationToken = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    // Send verification email
-    const verificationLink = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Verify Your Email - Doctor Booking System",
       html: `<p>Please verify your email by clicking the link below:</p>
-             <a href="${verificationLink}">Verify Email</a>
+             <a href="${process.env.FRONTEND_URL}/verify-email/${verificationToken}">Verify Email</a>
              <p>This link expires in 24 hours.</p>`,
     });
 
@@ -89,7 +85,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// Verify Email
+// Email verification
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
@@ -112,7 +108,7 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-// Forgot Password
+// Forgot password
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -125,19 +121,16 @@ const forgotPassword = async (req, res) => {
       return res.json({ success: false, message: "User not found" });
     }
 
-    // Generate reset token
     const resetToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    // Send reset email
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Password Reset - Doctor Booking System",
       html: `<p>You requested a password reset. Click the link below to reset your password:</p>
-             <a href="${resetLink}">Reset Password</a>
+             <a href="${process.env.FRONTEND_URL}/reset-password/${resetToken}">Reset Password</a>
              <p>This link expires in 1 hour.</p>`,
     });
 
@@ -151,7 +144,7 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// Reset Password
+// Reset password
 const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -182,7 +175,7 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Login User with Email Verification Check
+// User login
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -214,26 +207,22 @@ const loginUser = async (req, res) => {
   }
 };
 
-// Google Login/Signup
+// Google login
 const googleLogin = async (req, res) => {
   try {
-    const { token } = req.body; // Google ID token from frontend
-
-    // Verify Google token
+    const { token } = req.body;
     const ticket = await googleClient.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
 
-    const { email, name, sub: googleId } = payload; // sub is Google's unique user ID
+    const { email, name, sub: googleId } = payload;
 
-    // Check if user already exists
     let user = await userModel.findOne({ email });
     if (user) {
-      // User exists, log them in
       if (!user.isVerified) {
-        await userModel.findByIdAndUpdate(user._id, { isVerified: true }); // Auto-verify Google users
+        await userModel.findByIdAndUpdate(user._id, { isVerified: true });
       }
       const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
         expiresIn: "7d",
@@ -241,13 +230,12 @@ const googleLogin = async (req, res) => {
       return res.json({ success: true, token: jwtToken, message: "Logged in with Google" });
     }
 
-    // User doesn't exist, sign them up
     const userData = {
       name,
       email,
-      password: "", // No password for Google users
-      isVerified: true, // Google users are auto-verified
-      googleId, // Store Google ID
+      password: "",
+      isVerified: true,
+      googleId,
     };
 
     const newUser = new userModel(userData);
@@ -264,7 +252,7 @@ const googleLogin = async (req, res) => {
   }
 };
 
-// Remaining functions remain unchanged
+// Get user profile
 const getProfile = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -276,6 +264,7 @@ const getProfile = async (req, res) => {
   }
 };
 
+// Update user profile
 const updateProfile = async (req, res) => {
   try {
     const { userId, name, phone, address, dob, gender } = req.body;
@@ -308,6 +297,7 @@ const updateProfile = async (req, res) => {
   }
 };
 
+// Create a notification for appointments
 const createNotification = async (req, userId, appointmentId, slotDate, slotTime, docName) => {
   const [day, month, year] = slotDate.split('_');
   const appointmentDateTime = new Date(`${year}-${month}-${day} ${slotTime}`);
@@ -316,32 +306,48 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
 
   let notificationTime;
   if (minutesDiff <= 10) {
-    notificationTime = new Date();
+    notificationTime = new Date(); // Immediate notification if less than 10 minutes away
   } else {
-    notificationTime = new Date(appointmentDateTime - 15 * 60 * 1000);
+    notificationTime = new Date(appointmentDateTime - 15 * 60 * 1000); // Schedule 15 minutes before
   }
 
-  const message = `Reminder: Your appointment with  ${docName} is scheduled for ${slotTime} on ${day}/${month}/${year}.`;
+  const message = `Reminder: Your appointment with ${docName} is scheduled for ${slotTime} on ${day}/${month}/${year}.`;
   const notification = new notificationModel({
     userId,
     appointmentId,
     message,
+    type: "appointment_reminder", // Set type to identify this as an appointment reminder
   });
   await notification.save();
 
   const io = req.app.get("io");
+
+  // Emit the initial notification immediately to update the frontend in real-time
+  io.to(userId).emit("newNotification", {
+    _id: notification._id,
+    message: notification.message,
+    type: notification.type,
+    createdAt: notification.createdAt,
+    isRead: false,
+  });
+  console.log(`Initial notification emitted to user ${userId}: ${message}`);
+
+  // Schedule the reminder notification (15 minutes before the appointment)
   scheduleJob(notificationTime, async () => {
-    const reminderMessage = `Upcoming: Your appointment with  ${docName} is in 15 minutes at ${slotTime} on ${day}/${month}/${year}.`;
+    const reminderMessage = `Upcoming: Your appointment with ${docName} is in 15 minutes at ${slotTime} on ${day}/${month}/${year}.`;
     const reminderNotification = new notificationModel({
       userId,
       appointmentId,
       message: reminderMessage,
+      type: "appointment_reminder", // Set type for the scheduled reminder
     });
     await reminderNotification.save();
 
+    // Emit the scheduled reminder notification
     io.to(userId).emit("newNotification", {
       _id: reminderNotification._id,
       message: reminderNotification.message,
+      type: reminderNotification.type,
       createdAt: reminderNotification.createdAt,
       isRead: false,
     });
@@ -351,6 +357,7 @@ const createNotification = async (req, userId, appointmentId, slotDate, slotTime
   return notification;
 };
 
+// Book an appointment
 const bookAppointment = async (req, res) => {
   try {
     const { userId, docId, slotDate, slotTime } = req.body;
@@ -398,6 +405,7 @@ const bookAppointment = async (req, res) => {
   }
 };
 
+// List user appointments
 const listAppointment = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -409,6 +417,7 @@ const listAppointment = async (req, res) => {
   }
 };
 
+// Cancel an appointment
 const cancelAppointment = async (req, res) => {
   try {
     const { userId, appointmentId } = req.body;
@@ -433,6 +442,7 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
+// Save a report card (user-initiated)
 const saveReportCard = async (req, res) => {
   try {
     const { userId, date, doctorName, appointmentTime, content, page } = req.body;
@@ -463,6 +473,7 @@ const saveReportCard = async (req, res) => {
   }
 };
 
+// Update a report card (user-initiated)
 const updateReportCard = async (req, res) => {
   try {
     const { userId, date, doctorName, appointmentTime, content, page } = req.body;
@@ -488,6 +499,7 @@ const updateReportCard = async (req, res) => {
   }
 };
 
+// Get all report cards for a user
 const getReportCards = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -499,6 +511,7 @@ const getReportCards = async (req, res) => {
   }
 };
 
+// Get user notifications
 const getNotifications = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -513,6 +526,7 @@ const getNotifications = async (req, res) => {
   }
 };
 
+// Mark a notification as read
 const markNotificationRead = async (req, res) => {
   try {
     const { userId, notificationId } = req.body;
@@ -526,7 +540,7 @@ const markNotificationRead = async (req, res) => {
     }
 
     const io = req.app.get("io");
-    io.to(userId).emit("notificationRead");
+    io.to(userId).emit("notificationRead", notificationId);
 
     res.json({ success: true, message: "Notification marked as read" });
   } catch (error) {
@@ -535,6 +549,7 @@ const markNotificationRead = async (req, res) => {
   }
 };
 
+// Mark all notifications as read
 const markAllAsRead = async (req, res) => {
   try {
     const { userId } = req.body;
@@ -568,5 +583,5 @@ export {
   verifyEmail,
   forgotPassword,
   resetPassword,
-  googleLogin, 
+  googleLogin,
 };
