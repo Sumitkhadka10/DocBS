@@ -7,7 +7,6 @@ import appointmentModel from "../models/appointmentModel.js";
 import userModel from "../models/userModel.js";
 import nodemailer from "nodemailer";
 
-// Configure Nodemailer
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -16,7 +15,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Function to generate random password
 const generateRandomPassword = () => {
   const length = 12;
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -27,7 +25,6 @@ const generateRandomPassword = () => {
   return password;
 };
 
-// API for adding doctor
 const addDoctor = async (req, res) => {
   try {
     const {
@@ -42,7 +39,6 @@ const addDoctor = async (req, res) => {
     } = req.body;
     const imageFile = req.file;
 
-    // Checking for all required data
     if (
       !name ||
       !email ||
@@ -58,14 +54,12 @@ const addDoctor = async (req, res) => {
         .json({ success: false, message: "Missing Details" });
     }
 
-    // Validate email format
     if (!validator.isEmail(email)) {
       return res
         .status(400)
         .json({ success: false, message: "Please enter a valid email" });
     }
 
-    // Check if email already exists
     const existingDoctor = await doctorModel.findOne({ email });
     if (existingDoctor) {
       return res
@@ -73,24 +67,18 @@ const addDoctor = async (req, res) => {
         .json({ success: false, message: "Email already registered" });
     }
 
-    // Generate random password
     const password = generateRandomPassword();
-
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Upload image to Cloudinary
     const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
       resource_type: "image",
     });
     const imageUrl = imageUpload.secure_url;
 
-    // Parse address safely
     const parsedAddress =
       typeof address === "string" ? JSON.parse(address) : address;
 
-    // Create doctor data object
     const doctorData = {
       name,
       email,
@@ -108,7 +96,6 @@ const addDoctor = async (req, res) => {
     const newDoctor = new doctorModel(doctorData);
     await newDoctor.save();
 
-    // Send email to the doctor with credentials
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -138,7 +125,6 @@ const addDoctor = async (req, res) => {
   }
 };
 
-// API for admin login
 const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -162,7 +148,6 @@ const loginAdmin = async (req, res) => {
   }
 };
 
-// API to get all doctor list for admin panel
 const allDoctors = async (req, res) => {
   try {
     const doctors = await doctorModel.find({}).select("-password");
@@ -173,7 +158,6 @@ const allDoctors = async (req, res) => {
   }
 };
 
-// API to get all appointment list
 const appointmentsAdmin = async (req, res) => {
   try {
     const appointments = await appointmentModel.find({});
@@ -184,7 +168,6 @@ const appointmentsAdmin = async (req, res) => {
   }
 };
 
-// API for appointment cancellation
 const appointmentCancel = async (req, res) => {
   try {
     const { appointmentId, cancellationReason } = req.body;
@@ -221,7 +204,6 @@ const appointmentCancel = async (req, res) => {
   }
 };
 
-// API to get all registered users (for admin only)
 const getAllUsers = async (req, res) => {
   try {
     const users = await userModel.find({}).select("-password");
@@ -232,7 +214,6 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// API to get dashboard data for admin panel
 const adminDashboard = async (req, res) => {
   try {
     const doctors = await doctorModel.find({});
