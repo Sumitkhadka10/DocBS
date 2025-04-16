@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef } from 'react';
 import { AdminContext } from '../context/AdminContext';
 import { NavLink } from 'react-router-dom';
 import { assets } from '../assets/assets';
@@ -6,6 +6,9 @@ import { assets } from '../assets/assets';
 const Sidebar = () => {
     const { aToken } = useContext(AdminContext);
     const [collapsed, setCollapsed] = useState(false);
+    const [width, setWidth] = useState(256); // Default width in pixels
+    const isDragging = useRef(false);
+    const sidebarRef = useRef(null);
 
     const navItemStyle = "flex items-center w-full px-6 py-3 text-base font-medium rounded-md transition-all duration-200";
     const activeStyle = "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md";
@@ -13,6 +16,31 @@ const Sidebar = () => {
 
     const toggleSidebar = () => {
         setCollapsed(!collapsed);
+    };
+
+    // Handle mouse down to start dragging
+    const handleMouseDown = (e) => {
+        isDragging.current = true;
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    // Handle mouse move to resize sidebar
+    const handleMouseMove = (e) => {
+        if (isDragging.current) {
+            const newWidth = e.clientX;
+            // Constrain width between 200px and 400px
+            if (newWidth >= 200 && newWidth <= 400) {
+                setWidth(newWidth);
+            }
+        }
+    };
+
+    // Handle mouse up to stop dragging
+    const handleMouseUp = () => {
+        isDragging.current = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
     };
 
     return (
@@ -32,13 +60,20 @@ const Sidebar = () => {
                 )}
             </button>
 
-            <div className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 shadow-lg transition-all duration-300 z-40
-                ${collapsed ? '-translate-x-full' : 'translate-x-0'} 
-                lg:translate-x-0 lg:static lg:w-64`}
+            <div
+                ref={sidebarRef}
+                className={`top-0 left-0 h-screen bg-white border-r border-gray-200 shadow-lg transition-all duration-300 z-40
+                    ${collapsed ? '-translate-x-full' : 'translate-x-0'} 
+                    lg:sticky lg:top-0 lg:-translate-x-0`}
+                style={{ width: `${width}px`, minWidth: '200px' }}
             >
+                <div
+                    className="absolute top-0 right-0 w-2 h-full cursor-col-resize bg-gray-200 opacity-0 hover:opacity-50 lg:block hidden"
+                    onMouseDown={handleMouseDown}
+                ></div>
                 {
                     aToken && (
-                        <div className="flex flex-col h-screen">
+                        <div className="flex flex-col h-full">
                             <div className="h-20 flex items-center px-6 border-b border-gray-200">
                                 <div className="flex items-center space-x-3">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center">
