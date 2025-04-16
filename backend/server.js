@@ -9,6 +9,7 @@ import doctorRouter from './routes/doctorRoute.js';
 import userRouter from './routes/userRoute.js';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
+import contentRouter from './routes/contentRoute.js';
 
 // App config
 const app = express();
@@ -32,6 +33,7 @@ app.use(cors());
 app.use('/api/admin', adminRouter);
 app.use('/api/doctor', doctorRouter);
 app.use('/api/user', userRouter);
+app.use('/api/content', contentRouter); // New
 
 // Make io accessible in controllers
 app.set("io", io);
