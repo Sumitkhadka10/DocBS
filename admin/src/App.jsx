@@ -17,6 +17,8 @@ import DoctorAppointments from './pages/Doctor/DoctorAppointments';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
 import DocNavbar from './components/DocNavbar';
 import DocSidebar from './components/DocSidebar';
+import ManageFirstAid from './pages/Admin/ManageFirstAid';
+import ManageHealthTips from './pages/Admin/ManageHealthTips';
 
 const App = () => {
   const { aToken } = useContext(AdminContext);
@@ -36,6 +38,9 @@ const App = () => {
           <Route path='/add-doctor' element={<AddDoctor />} />
           <Route path='/doctor-list' element={<DoctorList />} />
           <Route path='/admin-user-list' element={<AdminUserList />} />
+          <Route path='/manage-first-aid' element={<ManageFirstAid />} />
+          <Route path='/manage-health-tips' element={<ManageHealthTips />} />
+
 
           {/* //Doctors Route */}
 
