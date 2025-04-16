@@ -36,7 +36,6 @@ const Doctors = () => {
       navigate('/doctors');
     }
   };
-  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -136,8 +135,10 @@ const Doctors = () => {
                 className="bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 <div
-                  className="relative h-52 flex items-center justify-center bg-blue-50 cursor-pointer overflow-hidden rounded-t-2xl"
-                  onClick={() => navigate(`/appointment/${doctor._id}`)}
+                  className={`relative h-52 flex items-center justify-center bg-blue-50 overflow-hidden rounded-t-2xl ${
+                    doctor.available ? 'cursor-pointer' : 'cursor-not-allowed'
+                  }`}
+                  onClick={() => doctor.available && navigate(`/appointment/${doctor._id}`)}
                 >
                   <img
                     src={doctor.image}
@@ -154,8 +155,12 @@ const Doctors = () => {
                 </div>
                 <div className="p-5">
                   <h3
-                    className="text-lg font-semibold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors"
-                    onClick={() => navigate(`/appointment/${doctor._id}`)}
+                    className={`text-lg font-semibold text-gray-900 transition-colors ${
+                      doctor.available
+                        ? 'hover:text-blue-600 cursor-pointer'
+                        : 'text-gray-500 cursor-not-allowed'
+                    }`}
+                    onClick={() => doctor.available && navigate(`/appointment/${doctor._id}`)}
                   >
                     {doctor.name}
                   </h3>
