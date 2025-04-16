@@ -96,25 +96,64 @@ const ManageHealthTips = () => {
       colorClass: item.colorClass || '',
     });
     setEditId(item._id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      try {
-        const { data } = await axios.delete(
-          `${backendUrl}/api/content/health-tips/${id}`,
-          { headers: { Authorization: `Bearer ${aToken}` } }
-        );
-        if (data.success) {
-          toast.success(data.message);
-          fetchHealthTips();
-        } else {
-          toast.error(data.message);
-        }
-      } catch (error) {
-        toast.error(error.message);
+  const handleDelete = (id) => {
+    toast.warn(
+      ({ closeToast }) => (
+        <div className="flex flex-col items-center gap-2">
+          <p>Are you sure you want to delete this health tip?</p>
+          <div className="flex gap-2">
+            <button
+              onClick={async () => {
+                console.log(`Attempting to delete health tip with ID: ${id}`); // Debugging log
+                try {
+                  const response = await axios.delete(
+                    `${backendUrl}/api/content/health-tips/${id}`,
+                    { headers: { Authorization: `Bearer ${aToken}` } }
+                  );
+                  console.log('Delete response:', response.data); // Debugging log
+                  if (response.data.success) {
+                    toast.success('Health tip deleted successfully', {
+                      position: "top-center",
+                      autoClose: 3000,
+                    });
+                    fetchHealthTips(); // Refresh the list
+                  } else {
+                    toast.error(response.data.message || 'Failed to delete health tip');
+                  }
+                } catch (error) {
+                  console.error('Delete error:', error); // Debugging log
+                  toast.error(error.response?.data?.message || error.message || 'An error occurred while deleting');
+                } finally {
+                  closeToast(); // Ensure the toast closes after action
+                }
+              }}
+              className="p-2 bg-red-500 text-white rounded-md hover:scale-105 transition-transform"
+            >
+              Yes
+            </button>
+            <button
+              onClick={() => {
+                console.log('Deletion cancelled'); // Debugging log
+                closeToast();
+              }}
+              className="p-2 bg-gray-500 text-white rounded-md hover:scale-105 transition-transform"
+            >
+              No
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        position: "top-center",
+        autoClose: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
       }
-    }
+    );
   };
 
   const resetForm = () => {
@@ -239,7 +278,15 @@ const ManageHealthTips = () => {
                   <p className="text-sm text-gray-600">Description: {item.description}</p>
                   <p className="text-sm">Points: {item.points.join(', ')}</p>
                   {item.icon && <p className="text-sm">Icon: {item.icon}</p>}
-                  {item.colorClass && <p className="text-sm">Color Class: {item.colorClass}</p>}
+                  {item.colorClass && (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm">Color Class: {item.colorClass}</p>
+                      <div
+                        className={`w-12 h-4 rounded bg-gradient-to-r ${item.colorClass || 'from-blue-500 to-indigo-600'}`}
+                        title={`Gradient: ${item.colorClass || 'from-blue-500 to-indigo-600'}`}
+                      ></div>
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
