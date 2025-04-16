@@ -4,7 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { Calendar, FileText } from "lucide-react";
+import { Calendar, FileText, XCircle, CheckCircle } from "lucide-react";
 
 const Notifications = () => {
   const { backendUrl, token, userData } = useContext(AppContext);
@@ -35,7 +35,7 @@ const Notifications = () => {
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/user/mark-notification-read`,
-        { notificationId, userId: userData._id }, // Include userId for consistency with backend
+        { notificationId, userId: userData._id },
         { headers: { token } }
       );
       if (data.success) {
@@ -67,6 +67,18 @@ const Notifications = () => {
             <FileText className="h-5 w-5" />
           </div>
         );
+      case "appointment_cancelled":
+        return (
+          <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 hover:bg-red-200/50 transition-colors duration-300">
+            <XCircle className="h-5 w-5" />
+          </div>
+        );
+      case "appointment_completed":
+        return (
+          <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 hover:bg-indigo-200/50 transition-colors duration-300">
+            <CheckCircle className="h-5 w-5" />
+          </div>
+        );
       default:
         return (
           <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200/50 transition-colors duration-300">
@@ -85,7 +97,7 @@ const Notifications = () => {
 
   // Handle clicking a notification: navigate and mark as read
   const handleNotificationClick = async (notification) => {
-    if (notification.type === "appointment_reminder") {
+    if (notification.type === "appointment_reminder" || notification.type === "appointment_cancelled" || notification.type === "appointment_completed") {
       navigate("/my-appointments");
     } else if (notification.type === "report_card_available") {
       navigate("/my-report-card");
@@ -94,7 +106,6 @@ const Notifications = () => {
       navigate("/my-appointments"); // Fallback
     }
 
-    // Mark as read if not already read
     if (!notification.isRead) {
       await markAsRead(notification._id);
     }
@@ -115,7 +126,7 @@ const Notifications = () => {
 
       newSocket.on("connect", () => {
         console.log("Socket connected:", newSocket.id);
-        newSocket.emit("joinRoom", userData._id); // Join user-specific room
+        newSocket.emit("joinRoom", userData._id);
       });
 
       newSocket.on("connect_error", (error) => {
@@ -126,7 +137,6 @@ const Notifications = () => {
         console.log("New notification received:", notification);
         setNotifications((prev) => [notification, ...prev]);
 
-        // Show toast for new notification
         toast.info(
           <div className="flex items-center">
             <div className="mr-2">{getNotificationIcon(notification.type)}</div>
@@ -136,6 +146,10 @@ const Notifications = () => {
                   ? "Appointment Reminder"
                   : notification.type === "report_card_available"
                   ? "Report Card Available"
+                  : notification.type === "appointment_cancelled"
+                  ? "Appointment Cancelled"
+                  : notification.type === "appointment_completed"
+                  ? "Appointment Completed"
                   : "New Notification"}
               </p>
               <p className="text-sm text-gray-600">{notification.message}</p>
@@ -167,7 +181,7 @@ const Notifications = () => {
   const filteredNotifications = notifications.filter((notification) => {
     if (filter === "unread") return !notification.isRead;
     if (filter === "read") return notification.isRead;
-    return true; // "all" filter
+    return true;
   });
 
   // Format date for display
@@ -178,23 +192,13 @@ const Notifications = () => {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-      return `Today at ${date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
+      return `Today at ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
     } else if (diffDays === 1) {
-      return `Yesterday at ${date.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
+      return `Yesterday at ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
     } else if (diffDays < 7) {
       return `${diffDays} days ago`;
     } else {
-      return date.toLocaleDateString([], {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+      return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
     }
   };
 
@@ -289,7 +293,7 @@ const Notifications = () => {
           {filteredNotifications.map((notification) => (
             <div
               key={notification._id}
-              onClick={() => handleNotificationClick(notification)} // Handle navigation and mark as read
+              onClick={() => handleNotificationClick(notification)}
               className={`flex p-4 transition-colors duration-300 hover:bg-primary/5 cursor-pointer ${
                 !notification.isRead ? "bg-primary/10" : ""
               }`}
@@ -310,6 +314,10 @@ const Notifications = () => {
                       ? "Appointment Reminder"
                       : notification.type === "report_card_available"
                       ? "Report Card Available"
+                      : notification.type === "appointment_cancelled"
+                      ? "Appointment Cancelled"
+                      : notification.type === "appointment_completed"
+                      ? "Appointment Completed"
                       : "Notification"}
                   </h4>
                   <span className="text-xs text-gray-600 hover:text-gray-700 transition-colors duration-300">
@@ -328,7 +336,7 @@ const Notifications = () => {
                 {!notification.isRead && (
                   <button
                     onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering navigation when clicking "Mark as read"
+                      e.stopPropagation();
                       markAsRead(notification._id);
                     }}
                     className="text-primary hover:text-primary-dark text-xs font-semibold mt-2 transition-colors duration-300"
