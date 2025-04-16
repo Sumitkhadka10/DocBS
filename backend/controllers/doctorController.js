@@ -233,7 +233,7 @@ const saveOrUpdatePatientReportCard = async (req, res) => {
       await reportCard.save();
     }
 
-    const notificationMessage = `Your medical report from Dr. ${doctorName} for your appointment on ${date} at ${appointmentTime} is now available.`;
+    const notificationMessage = `Your medical report from ${doctorName} for your appointment on ${date} at ${appointmentTime} is now available.`;
     const notification = new notificationModel({
       userId,
       appointmentId,
