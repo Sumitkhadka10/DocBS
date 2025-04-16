@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-import { Bell, FileText, Calendar } from "lucide-react";
+import { Bell, FileText, Calendar, XCircle, CheckCircle } from "lucide-react";
 
 // Notification dropdown component
 const NotificationDropdown = ({ isOpen, setIsOpen }) => {
@@ -79,7 +79,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       <div className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-md border border-gray-200 max-w-sm">
         <FileText className="w-6 h-6 text-blue-500 flex-shrink-0" />
         <div className="flex-1">
-          <p className="text-sm font-semibold text-gray-900">New Report Card Available</p>
+          <p className="text-sm font-semibold text-gray-900">Report Card Available</p>
           <p className="text-sm text-gray-600 mt-1">{message}</p>
           {appointmentId && (
             <p className="text-xs text-gray-500 mt-1">Appointment ID: {appointmentId}</p>
@@ -87,7 +87,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
           <div className="mt-2 flex space-x-2">
             <button
               onClick={() => {
-                navigate("/my-report-card"); // Navigate to report card page
+                navigate("/my-report-card");
                 closeToast();
               }}
               className="text-xs font-medium text-blue-600 hover:text-blue-800 underline transition-colors duration-200"
@@ -121,10 +121,78 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
           <div className="mt-2 flex space-x-2">
             <button
               onClick={() => {
-                navigate("/my-appointments"); // Navigate to appointments page
+                navigate("/my-appointments");
                 closeToast();
               }}
               className="text-xs font-medium text-green-600 hover:text-green-800 underline transition-colors duration-200"
+            >
+              View Details
+            </button>
+            <button
+              onClick={closeToast}
+              className="text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Toast component for appointment cancelled
+  const AppointmentCancelledToast = ({ message, appointmentId, closeToast }) => {
+    const navigate = useNavigate();
+    return (
+      <div className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-md border border-gray-200 max-w-sm">
+        <XCircle className="w-6 h-6 text-red-500 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900">Appointment Cancelled</p>
+          <p className="text-sm text-gray-600 mt-1">{message}</p>
+          {appointmentId && (
+            <p className="text-xs text-gray-500 mt-1">Appointment ID: {appointmentId}</p>
+          )}
+          <div className="mt-2 flex space-x-2">
+            <button
+              onClick={() => {
+                navigate("/my-appointments");
+                closeToast();
+              }}
+              className="text-xs font-medium text-red-600 hover:text-red-800 underline transition-colors duration-200"
+            >
+              View Details
+            </button>
+            <button
+              onClick={closeToast}
+              className="text-xs font-medium text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Toast component for appointment completed
+  const AppointmentCompletedToast = ({ message, appointmentId, closeToast }) => {
+    const navigate = useNavigate();
+    return (
+      <div className="flex items-start space-x-3 p-3 bg-white rounded-lg shadow-md border border-gray-200 max-w-sm">
+        <CheckCircle className="w-6 h-6 text-indigo-500 flex-shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-gray-900">Appointment Completed</p>
+          <p className="text-sm text-gray-600 mt-1">{message}</p>
+          {appointmentId && (
+            <p className="text-xs text-gray-500 mt-1">Appointment ID: {appointmentId}</p>
+          )}
+          <div className="mt-2 flex space-x-2">
+            <button
+              onClick={() => {
+                navigate("/my-appointments");
+                closeToast();
+              }}
+              className="text-xs font-medium text-indigo-600 hover:text-indigo-800 underline transition-colors duration-200"
             >
               View Details
             </button>
@@ -160,7 +228,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
 
     newSocket.on("connect", () => {
       console.log("Socket connected:", newSocket.id);
-      newSocket.emit("joinRoom", userData._id); // Join user-specific room
+      newSocket.emit("joinRoom", userData._id);
     });
 
     newSocket.on("connect_error", (error) => {
@@ -185,25 +253,47 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
       };
 
       // Handle notification type to display appropriate toast
-      if (notification.type === "appointment_reminder") {
-        toast(
-          <AppointmentReminderToast
-            message={notification.message || "You have an upcoming appointment!"}
-            appointmentId={notification.appointmentId}
-          />,
-          toastOptions
-        );
-      } else if (notification.type === "report_card_available") {
-        toast(
-          <ReportCardToast
-            message={notification.message || "A new report card is available!"}
-            appointmentId={notification.appointmentId}
-          />,
-          toastOptions
-        );
-      } else {
-        console.warn("Unknown notification type:", notification.type);
-        toast(notification.message || "New notification received", toastOptions); // Fallback for unknown types
+      switch (notification.type) {
+        case "appointment_reminder":
+          toast(
+            <AppointmentReminderToast
+              message={notification.message || "You have an upcoming appointment!"}
+              appointmentId={notification.appointmentId}
+            />,
+            toastOptions
+          );
+          break;
+        case "report_card_available":
+          toast(
+            <ReportCardToast
+              message={notification.message || "A new report card is available!"}
+              appointmentId={notification.appointmentId}
+            />,
+            toastOptions
+          );
+          break;
+        case "appointment_cancelled":
+          toast(
+            <AppointmentCancelledToast
+              message={notification.message || "Your appointment has been cancelled."}
+              appointmentId={notification.appointmentId}
+            />,
+            toastOptions
+          );
+          break;
+        case "appointment_completed":
+          toast(
+            <AppointmentCompletedToast
+              message={notification.message || "Your appointment has been completed."}
+              appointmentId={notification.appointmentId}
+            />,
+            toastOptions
+          );
+          break;
+        default:
+          console.warn("Unknown notification type:", notification.type);
+          toast(notification.message || "New notification received", toastOptions);
+          break;
       }
     });
 
@@ -255,7 +345,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
             </div>
           ) : (
             notifications
-              .slice(0, 5) // Limit to 5 most recent notifications in dropdown
+              .slice(0, 5)
               .map((notification) => (
                 <NotificationItem
                   key={notification._id || `fallback-${Date.now()}`}
@@ -271,7 +361,7 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
             <button
               onClick={() => {
                 setIsOpen(false);
-                navigate("/notifications"); // Link to full notifications page
+                navigate("/notifications");
               }}
               className="text-sm text-primary hover:text-primary-dark transition-colors duration-300"
             >
@@ -287,25 +377,42 @@ const NotificationDropdown = ({ isOpen, setIsOpen }) => {
 // Individual notification item in the dropdown
 const NotificationItem = ({ notification, markAsRead, formatTimestamp, navigate }) => {
   const handleItemClick = async (e) => {
-    if (e.target.tagName === "BUTTON") return; // Prevent navigation if clicking "Mark as read" button
+    if (e.target.tagName === "BUTTON") return;
 
     // Navigate based on notification type and mark as read
-    if (notification.type === "appointment_reminder") {
-      navigate("/my-appointments");
-      if (!notification.isRead) {
-        await markAsRead(notification._id); // Mark as read after navigation
-      }
-    } else if (notification.type === "report_card_available") {
-      navigate("/my-report-card");
-      if (!notification.isRead) {
-        await markAsRead(notification._id); // Mark as read after navigation
-      }
-    } else {
-      console.warn("Unknown notification type:", notification.type);
-      navigate("/my-appointments"); // Default fallback
-      if (!notification.isRead) {
-        await markAsRead(notification._id); // Mark as read even for fallback
-      }
+    switch (notification.type) {
+      case "appointment_reminder":
+      case "appointment_cancelled":
+      case "appointment_completed":
+        navigate("/my-appointments");
+        break;
+      case "report_card_available":
+        navigate("/my-report-card");
+        break;
+      default:
+        console.warn("Unknown notification type:", notification.type);
+        navigate("/my-appointments"); // Fallback
+        break;
+    }
+
+    if (!notification.isRead) {
+      await markAsRead(notification._id);
+    }
+  };
+
+  // Get icon based on notification type
+  const getIcon = (type) => {
+    switch (type) {
+      case "appointment_reminder":
+        return <Calendar className="w-5 h-5 text-green-500" />;
+      case "report_card_available":
+        return <FileText className="w-5 h-5 text-blue-500" />;
+      case "appointment_cancelled":
+        return <XCircle className="w-5 h-5 text-red-500" />;
+      case "appointment_completed":
+        return <CheckCircle className="w-5 h-5 text-indigo-500" />;
+      default:
+        return <Bell className="w-5 h-5 text-gray-500" />;
     }
   };
 
@@ -316,6 +423,7 @@ const NotificationItem = ({ notification, markAsRead, formatTimestamp, navigate 
         !notification.isRead ? "bg-primary/10" : ""
       }`}
     >
+      <div className="mr-2">{getIcon(notification.type)}</div>
       {!notification.isRead && <div className="w-2 h-2 bg-primary rounded-full mr-2" />}
       <div className="flex-1">
         <p
@@ -334,7 +442,7 @@ const NotificationItem = ({ notification, markAsRead, formatTimestamp, navigate 
       {!notification.isRead && (
         <button
           onClick={(e) => {
-            e.stopPropagation(); // Prevent triggering handleItemClick
+            e.stopPropagation();
             markAsRead(notification._id);
           }}
           className="ml-2 text-xs text-primary hover:text-primary-dark transition-colors duration-200"
