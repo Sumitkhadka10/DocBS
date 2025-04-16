@@ -1,52 +1,67 @@
-import React, { useState } from 'react';
-import { FaHeartbeat, FaLungs, FaBurn, FaTint, FaBrain, FaAllergies, FaPlus, FaFirstAid, FaBaby, FaSun } from 'react-icons/fa';
-
-const firstAidCategories = {
-  'Critical Emergencies': [
-    { icon: <FaHeartbeat className="text-red-500" />, title: 'Heart Attack', steps: ['Call emergency number', 'Help person sit down', 'Give aspirin (chew 1 adult tablet)', 'Loosen tight clothing', 'Be ready to do CPR'], note: 'Time is critical - act fast!' },
-    { icon: <FaLungs className="text-blue-500" />, title: 'Choking', steps: ['Ask "Can you cough or speak?"', 'Give 5 hard back blows', 'Do 5 quick Heimlich thrusts', 'Repeat until object comes out', 'Start CPR if person faints'], note: 'Never slap back if coughing' }
-  ],
-  'Trauma Care': [
-    { icon: <FaBurn className="text-orange-500" />, title: 'Burns', steps: ['Cool under running water (20 min)', 'Remove jewelry', 'Cover with clean cloth', "Don't pop blisters", 'Seek medical help for severe burns'], note: 'Never use ice' },
-    { icon: <FaTint className="text-red-500" />, title: 'Heavy Bleeding', steps: ['Press hard with clean cloth', 'Keep pressing - add more cloth if needed', 'Raise injured part', 'Maintain pressure until help arrives', 'Tie a tight band as last resort'], note: "Don't remove stuck objects" }
-  ],
-  'Medical Crises': [
-    { icon: <FaBrain className="text-purple-500" />, title: 'Stroke', steps: ['FAST: Face drooping?', 'Arm weakness?', 'Speech trouble?', 'Time to call emergency', 'Note symptom start time'], note: 'Act fast!' },
-    { icon: <FaAllergies className="text-green-500" />, title: 'Severe Allergy', steps: ['Use epi-pen (thigh)', 'Call emergency', 'Lay person flat, raise legs', 'Stay until help arrives', 'Give second epi-pen if needed'], note: 'Hospital check needed even if better' }
-  ],
-  'Environmental Injuries': [
-    { icon: <FaSun className="text-yellow-500" />, title: 'Heat Stroke', steps: ['Move to cool place', 'Remove clothing', 'Cool with wet cloths', 'Give sips of water', 'Fan while waiting for help'], note: 'Hot, dry skin is dangerous!' },
-    { icon: <FaSun className="text-blue-500" />, title: 'Hypothermia', steps: ['Move to warm place', 'Remove wet clothes', 'Warm with blankets', 'Give warm drinks', "Don't rub skin"], note: 'Warm slowly' }
-  ],
-  'Kids & Babies': [
-    { icon: <FaBaby className="text-pink-500" />, title: 'Child CPR', steps: ['Check response', 'Give 30 chest pushes', 'Give 2 gentle breaths', 'Repeat until help arrives', 'Start CPR before calling emergency'], note: 'Push 1/3 deep' },
-    { icon: <FaLungs className="text-blue-500" />, title: 'Baby Choking', steps: ['Lay baby face down', 'Give 5 back slaps', 'Turn over, give 5 chest thrusts', 'Repeat until object comes out', "Don't finger sweep"], note: 'Start CPR if baby stops breathing' }
-  ]
-};
+import React, { useState, useEffect, useContext } from 'react';
+import { FaPlus, FaFirstAid, FaHeartbeat, FaLungs, FaBurn, FaTint, FaBrain, FaAllergies, FaSun, FaBaby } from 'react-icons/fa';
+import { AppContext } from '../context/AppContext';
 
 const FirstAidGuide = () => {
-  const [selectedCategory, setSelectedCategory] = useState(Object.keys(firstAidCategories)[0]);
+  const { firstAidItems } = useContext(AppContext);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [activeIndex, setActiveIndex] = useState(null);
+
+  // Guard clause for invalid firstAidItems
+  if (!firstAidItems || !Array.isArray(firstAidItems)) {
+    return <div>Loading...</div>;
+  }
+
+  // Group first aid items by category
+  const categories = [...new Set(firstAidItems.map(item => item.category).filter(category => category))];
+  const firstAidCategories = categories.reduce((acc, category) => {
+    acc[category] = firstAidItems.filter(item => item.category === category);
+    return acc;
+  }, {});
+
+  // Set default category
+  useEffect(() => {
+    if (categories.length > 0 && !selectedCategory) {
+      setSelectedCategory(categories[0]);
+    }
+  }, [categories]);
+
+  // Map icon strings to React components
+  const iconMap = {
+    FaHeartbeat: <FaHeartbeat className="text-red-500" />,
+    FaLungs: <FaLungs className="text-blue-500" />,
+    FaBurn: <FaBurn className="text-orange-500" />,
+    FaTint: <FaTint className="text-red-500" />,
+    FaBrain: <FaBrain className="text-purple-500" />,
+    FaAllergies: <FaAllergies className="text-green-500" />,
+    FaSun: <FaSun className="text-yellow-500" />,
+    FaSunBlue: <FaSun className="text-blue-500" />,
+    FaBaby: <FaBaby className="text-pink-500" />,
+  };
+
+  if (!selectedCategory) {
+    return <div>No categories available</div>;
+  }
 
   return (
     <div className="max-w-5xl mx-auto rounded-xl shadow-lg overflow-hidden">
-      <header className="bg-primary text-white p-6">
+      <header className="bg-blue-600 text-white p-6">
         <div className="flex items-center justify-center gap-3 mb-2">
           <div className="bg-white rounded-full p-2">
-            <FaFirstAid className="text-primary text-2xl" />
+            <FaFirstAid className="text-blue-600 text-2xl" />
           </div>
           <h1 className="text-3xl font-bold">First Aid Made Simple</h1>
         </div>
         <p className="text-center opacity-90 font-light">Easy-to-follow emergency instructions for everyone</p>
       </header>
 
-      <div className="flex overflow-x-auto py-4 px-4 bg-primary bg-opacity-10 sticky top-0 z-10">
-        {Object.keys(firstAidCategories).map(category => (
+      <div className="flex overflow-x-auto py-4 px-4 bg-blue-600 bg-opacity-10 sticky top-0 z-10">
+        {categories.map(category => (
           <button
             key={category}
             className={`whitespace-nowrap px-5 py-2 mx-1 rounded-md text-sm font-medium transition-all ${
               selectedCategory === category 
-                ? 'bg-primary text-white shadow-md' 
+                ? 'bg-blue-600 text-white shadow-md' 
                 : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
             }`}
             onClick={() => {
@@ -60,15 +75,15 @@ const FirstAidGuide = () => {
       </div>
 
       <div className="p-6 space-y-4">
-        {firstAidCategories[selectedCategory].map((procedure, index) => {
+        {firstAidCategories[selectedCategory]?.map((procedure, index) => {
           const isActive = activeIndex === index;
           
           return (
             <div 
-              key={index} 
+              key={procedure._id} 
               className={`rounded-lg transition-all duration-200 border ${
                 isActive 
-                  ? 'border-primary shadow-md' 
+                  ? 'border-blue-600 shadow-md' 
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
@@ -77,7 +92,7 @@ const FirstAidGuide = () => {
                 onClick={() => setActiveIndex(isActive ? null : index)}
               >
                 <div className="p-3 rounded-full bg-gray-50">
-                  {procedure.icon}
+                  {iconMap[procedure.icon] || <FaFirstAid className="text-gray-500" />}
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-800">{procedure.title}</h3>
@@ -91,7 +106,7 @@ const FirstAidGuide = () => {
                 </div>
                 <div className={`w-7 h-7 flex items-center justify-center rounded-full ${
                   isActive 
-                    ? 'bg-primary text-white' 
+                    ? 'bg-blue-600 text-white' 
                     : 'bg-gray-50 text-gray-500'
                 }`}>
                   <FaPlus className={`transition-transform ${isActive ? 'rotate-45' : ''}`} />
@@ -103,7 +118,7 @@ const FirstAidGuide = () => {
                   <div className="space-y-3">
                     {procedure.steps.map((step, stepIndex) => (
                       <div key={stepIndex} className="flex items-start gap-3 p-2">
-                        <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center text-sm font-medium">
+                        <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-medium">
                           {stepIndex + 1}
                         </div>
                         <p className="text-gray-700 pt-0.5">{step}</p>
