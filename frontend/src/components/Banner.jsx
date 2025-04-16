@@ -9,20 +9,29 @@ const Banner = () => {
         {/* Animated wave pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <path d="M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z" fill="url(#gradient1)" className="animate-wave-slow">
-              <animate attributeName="d" dur="15s" repeatCount="indefinite" values="
-                M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z;
-                M0,50 C30,40 50,60 70,40 C90,60 100,50 100,50 L100,100 L0,100 Z;
-                M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z
-              "/>
+            <defs>
+              <linearGradient id="gradient1" gradientTransform="rotate(90)">
+                <stop offset="0%" stopColor="white" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0.5)" />
+              </linearGradient>
+            </defs>
+            <path
+              d="M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z"
+              fill="url(#gradient1)"
+              className="animate-wave-slow"
+            >
+              <animate
+                attributeName="d"
+                dur="15s"
+                repeatCount="indefinite"
+                values="
+                  M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z;
+                  M0,50 C30,40 50,60 70,40 C90,60 100,50 100,50 L100,100 L0,100 Z;
+                  M0,50 C20,60 40,40 60,50 C80,60 100,40 100,50 L100,100 L0,100 Z
+                "
+              />
             </path>
           </svg>
-          <defs>
-            <linearGradient id="gradient1" gradientTransform="rotate(90)">
-              <stop offset="0%" stopColor="white"/>
-              <stop offset="100%" stopColor="rgba(255,255,255,0.5)"/>
-            </linearGradient>
-          </defs>
         </div>
         
         {/* Glowing accent circles */}
