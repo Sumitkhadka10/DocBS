@@ -8,7 +8,7 @@ const Doctors = () => {
   const navigate = useNavigate();
   const [filterDoc, setFilterDoc] = useState([]);
   const [sortOption, setSortOption] = useState('default');
-  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
+  const [searchQuery, setSearchQuery] = useState(''); 
   const { doctors } = useContext(AppContext);
 
   const applyFilterAndSort = () => {
