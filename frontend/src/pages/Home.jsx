@@ -5,21 +5,21 @@ import Banner from '../components/Banner';
 import HealthTips from '../components/HealthTips';
 import Blog from '../components/Blog';
 import FirstAid from '../components/FirstAid';
-import ChatbotButton from '../components/ChatbotButton';
 import { AppContext } from '../context/AppContext.jsx';
+import ChatBot from '../components/ChatBot.jsx';
 
 const Home = () => {
   const { token, userData } = useContext(AppContext);
 
   return (
-    <div>
+    <div className="min-h-screen">
       <Header />
+      <Banner />
       <HealthTips />
       <TopDoctors />
       <Blog />
       <FirstAid />
-      <Banner />
-      {token && userData && <ChatbotButton />}
+      {token && userData && <ChatBot />}
     </div>
   );
 };
