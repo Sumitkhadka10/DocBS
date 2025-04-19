@@ -94,7 +94,7 @@ const Contact = () => {
             </div>
           )}
           <iframe
-            title="Healthcare Facilities Map"
+            title="Doctor Booking System Location"
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.3871411347396!2d85.3240364150613!3d27.708955682792284!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb198fd987d119%3A0x2d3aee8356bc872!2sKathmandu%2C%20Nepal!5e0!3m2!1sen!2snp!4v1673996145263!5m2!1sen!2snp"
             width="100%"
             height="400"
