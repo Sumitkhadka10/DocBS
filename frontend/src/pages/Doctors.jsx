@@ -1,20 +1,32 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom'; 
+import { useParams, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import SpecialityMenu from '../components/SpecialityMenu';
 
 const Doctors = () => {
   const { speciality } = useParams();
-  const navigate = useNavigate(); 
-  const [filterDoc, setFilterDoc] = useState([]); 
-  const [sortOption, setSortOption] = useState('default'); 
+  const navigate = useNavigate();
+  const [filterDoc, setFilterDoc] = useState([]);
+  const [sortOption, setSortOption] = useState('default');
+  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
   const { doctors } = useContext(AppContext);
 
   const applyFilterAndSort = () => {
-    let filtered = speciality 
-      ? doctors.filter((doc) => doc.speciality === speciality) 
-      : [...doctors];
+    let filtered = [...doctors];
 
+    // Filter by speciality if provided
+    if (speciality) {
+      filtered = filtered.filter((doc) => doc.speciality === speciality);
+    }
+
+    // Filter by search query (case-insensitive)
+    if (searchQuery) {
+      filtered = filtered.filter((doc) =>
+        doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply sorting
     if (sortOption === 'availability') {
       filtered.sort((a, b) => (a.available === b.available ? 0 : a.available ? -1 : 1));
     } else if (sortOption === 'unavailability') {
@@ -28,13 +40,17 @@ const Doctors = () => {
 
   useEffect(() => {
     applyFilterAndSort();
-  }, [doctors, speciality, sortOption]);
+  }, [doctors, speciality, sortOption, searchQuery]);
 
   const handleSortChange = (option) => {
     setSortOption(option);
     if (option === 'all') {
       navigate('/doctors');
     }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
   };
 
   return (
@@ -58,7 +74,7 @@ const Doctors = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {/* Filters and Title */}
+        {/* Filters, Search, and Title */}
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
           <div className="text-center sm:text-left">
             <h2 className="text-2xl font-semibold text-gray-900">
@@ -68,33 +84,43 @@ const Doctors = () => {
               {filterDoc.length} {filterDoc.length === 1 ? 'Doctor' : 'Doctors'}
             </span>
           </div>
-          {speciality && (
-            <button
-              onClick={() => navigate('/doctors')}
-              className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-all text-sm font-medium shadow-sm"
-            >
-              View All Specialties
-            </button>
-          )}
-          <div className="relative">
-            <select
-              value={sortOption}
-              onChange={(e) => handleSortChange(e.target.value)}
-              className="appearance-none bg-white border border-gray-200 text-gray-700 text-sm py-2.5 pl-4 pr-10 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 transition-all"
-            >
-              <option value="default">Sort: Default</option>
-              <option value="availability">Sort: Available First</option>
-              <option value="unavailability">Sort: Unavailable First</option>
-              <option value="all">All Specialists</option>
-            </select>
-            <svg
-              className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
+          <div className="flex gap-4 items-center">
+            {/* Search Input */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search doctors by name..."
+              className="appearance-none bg-white border border-gray-200 text-gray-700 text-sm py-2.5 pl-4 pr-10 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 transition-all w-64"
+            />
+            {speciality && (
+              <button
+                onClick={() => navigate('/doctors')}
+                className="px-5 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-all text-sm font-medium shadow-sm"
+              >
+                View All Specialties
+              </button>
+            )}
+            <div className="relative">
+              <select
+                value={sortOption}
+                onChange={(e) => handleSortChange(e.target.value)}
+                className="appearance-none bg-white border border-gray-200 text-gray-700 text-sm py-2.5 pl-4 pr-10 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-50 transition-all"
+              >
+                <option value="default">Sort: Default</option>
+                <option value="availability">Sort: Available First</option>
+                <option value="unavailability">Sort: Unavailable First</option>
+                <option value="all">All Specialists</option>
+              </select>
+              <svg
+                className="w-4 h-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
         </div>
 
